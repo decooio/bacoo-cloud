@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "es2017",
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "types": ["mocha"],
+  "include": ["./**/*.ts", "./**/*.js", "./**/*.sql"],
+  "exclude": ["node_modules", "dist"]
+}
