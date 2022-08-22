@@ -1,5 +1,5 @@
 import * as express from 'express';
-import {CommonResponse} from "../type/common";
+import {CommonResponse, Valid} from "../type/common";
 import { body, validationResult } from 'express-validator';
 import {validate} from "../middleware/validator";
 import {sendVerifySms} from "../util/smsUtils";
@@ -12,7 +12,7 @@ import {Keyring} from "@polkadot/keyring";
 import {Transaction} from "sequelize";
 const svgCaptcha = require('svg-captcha');
 import crypto from 'crypto';
-import {cryptoPassword, md5} from "../util/commonUtils";
+import {cryptoPassword, md5, randomNumber} from "../util/commonUtils";
 import {UserRoles} from "../type/user";
 import {generateChainAccount} from "../util/chainUtils";
 import {UserApiKey} from "../dao/UserApiKey";
@@ -31,10 +31,23 @@ router.get('/verify/svg', async (req: any, res) => {
     res.send(captcha.data);
 });
 
-router.post('/verify/sms', validate([body('mobile').isMobilePhone('zh-CN'), body('verifyCode').isString()]),
-    async (req: any, res) => {
+router.post('/verify/sms', validate([
+    body('mobile').isMobilePhone('zh-CN'),
+    body('verifyCode').isString()
+]), async (req: any, res) => {
     if (req.body.verifyCode === req.session.verifyCode) {
-        const code = `${Math.floor(Math.random() * 1000000)}`
+        if (req.body.resetPassword) {
+            const user = await User.model.findOne({
+                where: {
+                    mobile: req.body.mobile,
+                }
+            });
+            if (_.isEmpty(user)) {
+                CommonResponse.badRequest('Invalid mobile').send(res);
+                return;
+            }
+        }
+        const code = randomNumber(6);
         logger.info(`code: ${code}`)
         req.session.smsCode = code;
         req.session.mobile = req.body.mobile;
@@ -43,7 +56,64 @@ router.post('/verify/sms', validate([body('mobile').isMobilePhone('zh-CN'), body
     } else {
         CommonResponse.badRequest('Invalid verifyCode').send(res);
     }
-})
+});
+
+router.post('/reset/password', validate([
+    body('password').isLength({min: 6, max: 16}),
+    body('mobile').isMobilePhone('zh-CN'),
+    body('mobile').custom(async (value, {req}) => {
+        if (req.session.mobile !== value) {
+            throw new Error(`Mobile not match`);
+        }
+    }),
+]), async (req: any, res) => {
+   const user = await User.model.findOne({
+        attributes: ['id'],
+        where: {
+            mobile: req.body.mobile
+        }
+    });
+   if (_.isEmpty(user)) {
+       CommonResponse.badRequest('Invalid mobile').send(res);
+       return;
+   }
+   await User.model.update({
+       password: cryptoPassword(req.body.password)
+   });
+   CommonResponse.success().send(res);
+});
+
+router.post('/login', validate([
+    body('username').isString(),
+    body('password').isString()
+]), async (req, res) => {
+    const user = await User.model.findOne({
+        where: {
+            nick_name: req.body.username,
+            password: cryptoPassword(req.body.password),
+        }
+    });
+    if (_.isEmpty(user)) {
+        CommonResponse.badRequest('Invalid username or password').send(res);
+        return;
+    }
+    const apiKey = await UserApiKey.model.findOne({
+        where: {
+            user_id: user.id,
+            valid: Valid.valid
+        },
+        order: [
+            ['id', 'asc']
+        ],
+        limit: 1
+    });
+    const signature = apiKey.signature;
+    res.setHeader('Authorization', signature);
+    CommonResponse.success({
+        address: apiKey.address,
+        signature
+    }).send(res);
+});
 
 router.post('/user',
     validate([
