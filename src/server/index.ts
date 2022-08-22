@@ -7,7 +7,10 @@ const RedisStore = require("connect-redis")(session)
 import {logger} from "../util/logUtil";
 import {CommonResponse} from "../type/common";
 import {router as common} from "../router/common";
+import {router as authRouter} from "../router/auth";
+import {router as adminRouter} from "../router/admin";
 import {redis} from "../util/redisUtils";
+import {admin, auth} from "../middleware/auth";
 
 export const serverStart = async (port: string | number) => {
     const app = express();
@@ -22,7 +25,9 @@ export const serverStart = async (port: string | number) => {
         secret: 'keyboard cat',
         cookie: { maxAge: 1000 * 60 * 5 }
     }));
-    app.use('/common', common)
+    app.use('/common', common);
+    app.use('/auth', auth, authRouter);
+    app.use('/admin', auth, admin, adminRouter);
     app.use((err: any, req: any, res: any, next: any) => {
         logger.error(`Server err: ${err.stack}`)
         logger.error(`Server err: ${err.message}`)

@@ -21,3 +21,11 @@ export function md5(str: string): string {
 export function cryptoPassword(pass: string): string {
     return Buffer.from(md5(pass)).toString('base64');
 }
+
+export function randomNumber(length: number) {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result = `${result}${Math.floor(Math.random() * 10)}`
+    }
+    return result;
+}

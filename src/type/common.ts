@@ -43,3 +43,8 @@ export enum ResponseCode {
     Forbidden = 403,
     Success = 200,
 }
+
+export enum Valid {
+    valid,
+    invalid
+}
