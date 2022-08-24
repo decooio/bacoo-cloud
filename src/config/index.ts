@@ -28,6 +28,11 @@ export const CONFIGS = {
         secretKey: getEnv('SMS_SECRET_KEY', ''),
         SmsSdkAppId: getEnv('SMS_SDK_APP_ID', ''),
         TemplateId: getEnv('SMS_TEMPLATE_ID', ''),
+    },
+    billing: {
+        storage_size: getEnv('DEFAULT_STORAGE_SIZE', 1024 * 1024 * 100),
+        download_size: getEnv('DEFAULT_STORAGE_SIZE', 1024 * 1024 * 100),
+        expire_period: getEnv('DEFAULT_EXPIRE_PERIOD', 6),
     }
 }
 
