@@ -9,8 +9,9 @@ import {CommonResponse} from "../type/common";
 import {router as common} from "../router/common";
 import {router as authRouter} from "../router/auth";
 import {router as adminRouter} from "../router/admin";
+import {router as gatewayRouter} from "../router/gateway";
 import {redis} from "../util/redisUtils";
-import {admin, auth} from "../middleware/auth";
+import {admin, auth, gateway} from "../middleware/auth";
 
 export const serverStart = async (port: string | number) => {
     const app = express();
@@ -28,6 +29,7 @@ export const serverStart = async (port: string | number) => {
     app.use('/common', common);
     app.use('/auth', auth, authRouter);
     app.use('/admin', auth, admin, adminRouter);
+    app.use('/gateway', gateway, gatewayRouter);
     app.use((err: any, req: any, res: any, next: any) => {
         logger.error(`Server err: ${err.stack}`)
         logger.error(`Server err: ${err.message}`)

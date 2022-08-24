@@ -12,7 +12,7 @@ import {Keyring} from "@polkadot/keyring";
 import {Transaction} from "sequelize";
 const svgCaptcha = require('svg-captcha');
 import crypto from 'crypto';
-import {cryptoPassword, md5, randomNumber} from "../util/commonUtils";
+import {convertShortHash, cryptoPassword, md5, randomNumber} from "../util/commonUtils";
 import {UserRoles} from "../type/user";
 import {generateChainAccount} from "../util/chainUtils";
 import {UserApiKey} from "../dao/UserApiKey";
@@ -165,6 +165,14 @@ router.post('/user',
             transaction
         });
         const user_id = user.id
+        await User.model.update({
+            uuid: convertShortHash(user.id)
+        }, {
+            where: {
+                id: user_id
+            },
+            transaction
+        })
         await UserApiKey.model.create({
             user_id,
             seed: Buffer.from(seed).toString('base64'),
