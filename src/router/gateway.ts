@@ -13,6 +13,7 @@ import BigNumber from "bignumber.js";
 import {GatewayUser} from "../dao/GatewayUser";
 import {logger} from "../util/logUtil";
 import {DownloadRecord} from "../dao/DownloadRecord";
+import {PinFolderFile} from "../dao/PinFolderFile";
 const dayjs = require("dayjs");
 
 export const router = express.Router();
@@ -63,7 +64,10 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
             return CommonResponse.unauthorized('No auth to access').send(res);
         }
     }
-    const pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
+    let pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
+    if (_.isEmpty(pinFile)) {
+        pinFile = await PinFolderFile.queryFolderFileByUserIdAndCid(user.id, req.params.cid);
+    }
     if (!_.isEmpty(pinFile)) {
         // compare download size
         const { file_type, file_size } = pinFile[0];
