@@ -111,7 +111,8 @@ router.post('/login', validate([
     res.setHeader('Authorization', signature);
     CommonResponse.success({
         address: apiKey.address,
-        signature
+        signature,
+        uuid: user.uuid
     }).send(res);
 });
 
@@ -165,8 +166,9 @@ router.post('/user',
             transaction
         });
         const user_id = user.id
+        const uuid = convertShortHash(user.id);
         await User.model.update({
-            uuid: convertShortHash(user.id)
+            uuid
         }, {
             where: {
                 id: user_id
@@ -181,9 +183,9 @@ router.post('/user',
         },{
             transaction
         })
-        const storage_size = keys.get(CONSTANTS.TRIAL_STORAGE_SIZE_KEY),
-            download_size = keys.get(CONSTANTS.TRIAL_DOWNLOAD_SIZE_KEY),
-            expire_time = dayjs().add(Number(keys.get(CONSTANTS.TRIAL_PERIOD_KEY)), 'months').format('YYYY-MM-DD HH:mm:ss');
+        const storage_size = keys.get(CONSTANTS.TRIAL_STORAGE_SIZE_KEY) || CONFIGS.billing.storage_size,
+            download_size = keys.get(CONSTANTS.TRIAL_DOWNLOAD_SIZE_KEY) || CONFIGS.billing.download_size,
+            expire_time = dayjs().add(Number(keys.get(CONSTANTS.TRIAL_PERIOD_KEY) || CONFIGS.billing.expire_period), 'months').format('YYYY-MM-DD HH:mm:ss');
         await BillingOrder.model.create({
             user_id,
             storage_size,
@@ -204,7 +206,8 @@ router.post('/user',
         res.setHeader('Authorization', signature);
         CommonResponse.success({
             address,
-            signature
+            signature,
+            uuid
         }).send(res);
     })
 });
