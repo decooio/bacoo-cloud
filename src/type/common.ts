@@ -26,6 +26,10 @@ export class CommonResponse {
         return new CommonResponse(ResponseCode.Unauthorized, msg, null);
     }
 
+    static forbidden(msg: string): CommonResponse {
+        return new CommonResponse(ResponseCode.Forbidden, msg, null);
+    }
+
     static notfound(msg: string): CommonResponse {
         return new CommonResponse(ResponseCode.NotFound, msg, null);
     }
@@ -47,4 +51,9 @@ export enum ResponseCode {
 export enum Valid {
     valid,
     invalid
+}
+
+export enum Deleted {
+    undeleted,
+    deleted
 }

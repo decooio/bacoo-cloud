@@ -7,6 +7,8 @@ import {hexToU8a, stringToU8a, u8aConcat, u8aToU8a} from "@polkadot/util";
 import {signatureVerify} from "@polkadot/util-crypto";
 import {User} from "../dao/User";
 import {UserRoles} from "../type/user";
+import {Gateway} from "../dao/Gateway";
+import {NodeType} from "../type/gateway";
 
 const VALID_CHAIN_TYPES = ['substrate', 'sub'];
 const chainTypeDelimiter = '-';
@@ -77,6 +79,32 @@ export async function admin(req: any, res: any, next: any) {
         return;
     }
     next();
+}
+
+export async function gateway(req: any, res: any, next: any) {
+    const gatewayId = req.headers.gatewayid;
+    const password = req.headers.password;
+    if (!_.isEmpty(gatewayId) && !_.isEmpty(password)) {
+        const gateway = await Gateway.model.findOne({
+            where: {
+                id: gatewayId,
+                http_password: password,
+                valid: Valid.valid
+            }
+        });
+        if (_.isEmpty(gateway)) {
+            CommonResponse.unauthorized("need auth").send(res);
+            return;
+        }
+        req.gateway = gateway;
+        if (gateway.node_type === NodeType.premium) {
+            const gatewayUser = await UserApiKey.queryByGatewayId(gateway.id);
+            req.gatewayUser = gatewayUser;
+        }
+        next();
+        return;
+    }
+    CommonResponse.unauthorized("Need auth").send(res);
 }
 
 function substrateAuth(address: string, signature: string): boolean {
