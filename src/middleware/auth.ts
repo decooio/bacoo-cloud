@@ -82,8 +82,8 @@ export async function admin(req: any, res: any, next: any) {
 }
 
 export async function gateway(req: any, res: any, next: any) {
-    const gatewayId = req.headers.gatewayid;
-    const password = req.headers.password;
+    const gatewayId = req.headers['gateway-id'];
+    const password = req.headers['gateway-password'];
     if (!_.isEmpty(gatewayId) && !_.isEmpty(password)) {
         const gateway = await Gateway.model.findOne({
             where: {
@@ -93,8 +93,7 @@ export async function gateway(req: any, res: any, next: any) {
             }
         });
         if (_.isEmpty(gateway)) {
-            CommonResponse.unauthorized("need auth").send(res);
-            return;
+            return CommonResponse.unauthorized("need auth").send(res);
         }
         req.gateway = gateway;
         if (gateway.node_type === NodeType.premium) {
