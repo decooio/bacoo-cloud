@@ -56,6 +56,7 @@ export async function auth(req: any, res: any, next: any) {
             });
             if (!_.isEmpty(apiKey)) {
                 req.userId = apiKey.user_id;
+                req.apiKeyId = apiKey.id;
                 next();
                 return;
             }

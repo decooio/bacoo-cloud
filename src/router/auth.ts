@@ -11,6 +11,7 @@ import * as _ from "lodash";
 import {validate} from "../middleware/validator";
 import {body} from "express-validator";
 import {cryptoPassword} from "../util/commonUtils";
+import {Gateway} from "../dao/Gateway";
 
 export const router = express.Router();
 
@@ -91,5 +92,9 @@ router.post('/password/change', validate([
         }
     });
     CommonResponse.success().send(res);
+})
+
+router.get('/gateway/list', async (req: any, res) => {
+    CommonResponse.success(await Gateway.queryGatewayByUserId(req.userId)).send(res);
 })
 

@@ -35,7 +35,8 @@ export class PinFolderFile {
             '\tpin_folder_file f\n' +
             '\tJOIN pin_file p ON f.pin_file_id = p.id\n' +
             '\tJOIN pin_object o ON o.cid = p.cid\n' +
-            'WHERE o.deleted = ? and f.cid = ? and o.user_id = ?', {
+            '\tJOIN user_api_key k ON k.id = o.api_key_id\n' +
+            'WHERE o.deleted = ? and f.cid = ? and k.user_id = ?', {
             replacements: [Deleted.undeleted, cid, userId],
             type: QueryTypes.SELECT
         });

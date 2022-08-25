@@ -86,8 +86,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
                 (valid ? CommonResponse.success() : CommonResponse.forbidden('Plan overdue')).send(res);
             } else {
                 const usedSize = usedDownloadSize.plus(file_size);
-                valid = usedSize.comparedTo(userPlan.max_download_size) <= 0;
-                if (valid) {
+                if (valid && usedSize.comparedTo(userPlan.max_download_size) <= 0) {
                     await BillingPlan.model.update({
                         used_download_size: usedSize.toString()
                     }, {
