@@ -27,8 +27,13 @@ router.get('/verify/upload/:address', async (req: any, res) => {
         }
     });
     if (_.isEmpty(apiKey)) {
-        CommonResponse.badRequest('Invalid api key').send(res);
-        return;
+        return CommonResponse.badRequest('Invalid api key').send(res);
+    }
+    const userPlan = await BillingPlan.queryBillingPlanByApiKeyId(apiKey.id);
+    if (_.isEmpty(userPlan)
+        || new BigNumber(userPlan.used_storage_size).comparedTo(userPlan.max_storage_size) >= 0
+        || dayjs(userPlan.storage_expire_time).isBefore(dayjs())) {
+        return CommonResponse.forbidden('Storage plan out of limit').send(res);
     }
     switch (gateway.node_type) {
         case NodeType.free:
