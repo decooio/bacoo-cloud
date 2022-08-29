@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "ENV=dev nodemon ./src/app.ts",
     "start": "node ./dist/app.js",
-    "build": "gts clean && tsc"
+    "build": "gts clean && tsc && cp -R src/sql dist"
   },
   "dependencies": {
     "@crustio/type-definitions": "^1.3.0",
