@@ -30,6 +30,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DECOO_PAT }}
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Get current date
         id: date
@@ -42,4 +48,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/decooio/bacoo-cloud-dev:latest, ghcr.io/decooio/bacoo-cloud-dev:${{ steps.date.outputs.date }}
+          tags: ghcr.io/decooio/bacoo-cloud-dev:latest, ghcr.io/decooio/bacoo-cloud-dev:${{ steps.date.outputs.date }}, gavfu/bacoo-cloud-dev:latest, gavfu/bacoo-cloud-dev:${{ steps.date.outputs.date }}
