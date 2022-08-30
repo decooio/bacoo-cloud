@@ -27,7 +27,6 @@ export const router = express.Router();
 router.get('/verify/svg', async (req: any, res) => {
     const captcha = svgCaptcha.create();
     req.session.verifyCode = captcha.text;
-    logger.info(captcha.text)
     res.send(captcha.data);
 });
 
@@ -35,7 +34,7 @@ router.post('/verify/sms', validate([
     body('mobile').isMobilePhone('zh-CN'),
     body('verifyCode').isString()
 ]), async (req: any, res) => {
-    if (req.body.verifyCode === req.session.verifyCode) {
+    if (req.body.verifyCode.toUpperCase() === req.session.verifyCode.toUpperCase()) {
         if (req.body.resetPassword) {
             const user = await User.model.findOne({
                 where: {
