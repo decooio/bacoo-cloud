@@ -19,6 +19,7 @@ export const router = express.Router();
 router.post('/gateway', validate([
     body('name').isString().isLength({max: 64, min: 1}),
     body('host').isString().isLength({max: 255, min: 1}),
+    body('description').isString().isLength({max: 255, min: 1}),
     body('httpPassword').isString().isLength({max: 64, min: 1}),
     body('nodeType').isIn([NodeType.free, NodeType.premium]),
     body('valid').isIn([Valid.valid, Valid.invalid])
@@ -26,6 +27,7 @@ router.post('/gateway', validate([
     await Gateway.model.create({
         name: req.body.name,
         host: req.body.host,
+        description: req.body.description,
         node_type: req.body.nodeType,
         http_password: req.body.httpPassword,
         valid: req.body.valid

@@ -91,6 +91,10 @@ router.post('/reset/password', validate([
    }
    await User.model.update({
        password: cryptoPassword(req.body.password)
+   }, {
+       where: {
+           id: user.id
+       }
    });
    CommonResponse.success().send(res);
 });

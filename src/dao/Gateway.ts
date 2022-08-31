@@ -14,6 +14,7 @@ export class Gateway {
             },
             name: { type: DataTypes.STRING, allowNull: false },
             host: { type: DataTypes.STRING, allowNull: false },
+            description: { type: DataTypes.STRING, allowNull: true },
             node_type: { type: DataTypes.TINYINT, allowNull: false, defaultValue: NodeType.free },
             valid: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Valid.valid },
             http_password: { type: DataTypes.STRING, allowNull: false },
