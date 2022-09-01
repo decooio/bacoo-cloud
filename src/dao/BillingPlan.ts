@@ -1,6 +1,7 @@
 import sequelize from '../db/mysql';
-import {DataTypes, Sequelize} from "sequelize";
+import {DataTypes, QueryTypes, Sequelize} from "sequelize";
 import {BillingOrderType} from "../type/order";
+import * as _ from "lodash";
 export class BillingPlan {
     static model = sequelize.define(
         'billing_plan',
@@ -27,4 +28,15 @@ export class BillingPlan {
             updatedAt: 'update_time',
         }
     );
+
+    static async queryBillingPlanByApiKeyId(apiKeyId: number): Promise<any> {
+        const result = await sequelize.query(`SELECT b.* from user_api_key a join billing_plan b on a.user_id = b.user_id where a.id = ?`, {
+            replacements: [apiKeyId],
+            type: QueryTypes.SELECT
+        });
+        if (!_.isEmpty(result)) {
+            return result[0];
+        }
+        return null;
+    }
 }

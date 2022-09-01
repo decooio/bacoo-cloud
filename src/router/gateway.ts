@@ -13,6 +13,7 @@ import BigNumber from "bignumber.js";
 import {GatewayUser} from "../dao/GatewayUser";
 import {logger} from "../util/logUtil";
 import {DownloadRecord} from "../dao/DownloadRecord";
+import {PinFolderFile} from "../dao/PinFolderFile";
 const dayjs = require("dayjs");
 
 export const router = express.Router();
@@ -26,8 +27,13 @@ router.get('/verify/upload/:address', async (req: any, res) => {
         }
     });
     if (_.isEmpty(apiKey)) {
-        CommonResponse.badRequest('Invalid api key').send(res);
-        return;
+        return CommonResponse.badRequest('Invalid api key').send(res);
+    }
+    const userPlan = await BillingPlan.queryBillingPlanByApiKeyId(apiKey.id);
+    if (_.isEmpty(userPlan)
+        || new BigNumber(userPlan.used_storage_size).comparedTo(userPlan.max_storage_size) >= 0
+        || dayjs(userPlan.storage_expire_time).isBefore(dayjs())) {
+        return CommonResponse.forbidden('Storage plan out of limit').send(res);
     }
     switch (gateway.node_type) {
         case NodeType.free:
@@ -63,7 +69,10 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
             return CommonResponse.unauthorized('No auth to access').send(res);
         }
     }
-    const pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
+    let pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
+    if (_.isEmpty(pinFile)) {
+        pinFile = await PinFolderFile.queryFolderFileByUserIdAndCid(user.id, req.params.cid);
+    }
     if (!_.isEmpty(pinFile)) {
         // compare download size
         const { file_type, file_size } = pinFile[0];
@@ -82,8 +91,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
                 (valid ? CommonResponse.success() : CommonResponse.forbidden('Plan overdue')).send(res);
             } else {
                 const usedSize = usedDownloadSize.plus(file_size);
-                valid = usedSize.comparedTo(userPlan.max_download_size) <= 0;
-                if (valid) {
+                if (valid && usedSize.comparedTo(userPlan.max_download_size) <= 0) {
                     await BillingPlan.model.update({
                         used_download_size: usedSize.toString()
                     }, {

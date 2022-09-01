@@ -21,13 +21,18 @@ export const CONFIGS = {
     redis: {
         host: getEnv('REDIS_HOST', 'localhost'),
         port: getEnv('REDIS_PORT', 6379),
-        password: getEnv('REDIS_PORT', ''),
+        password: getEnv('REDIS_PASSWORD', ''),
     },
     sms: {
         secretId: getEnv('SMS_SECRET_ID', ''),
         secretKey: getEnv('SMS_SECRET_KEY', ''),
         SmsSdkAppId: getEnv('SMS_SDK_APP_ID', ''),
         TemplateId: getEnv('SMS_TEMPLATE_ID', ''),
+    },
+    billing: {
+        storage_size: getEnv('DEFAULT_STORAGE_SIZE', 1024 * 1024 * 100),
+        download_size: getEnv('DEFAULT_DOWNLOAD_SIZE', 1024 * 1024 * 100),
+        expire_period: getEnv('DEFAULT_EXPIRE_PERIOD', 6),
     }
 }
 

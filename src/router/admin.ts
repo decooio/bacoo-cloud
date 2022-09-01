@@ -19,15 +19,17 @@ export const router = express.Router();
 router.post('/gateway', validate([
     body('name').isString().isLength({max: 64, min: 1}),
     body('host').isString().isLength({max: 255, min: 1}),
-    body('httpPassword').isString().isLength({max: 64, min: 1}),
-    body('nodeType').isIn([NodeType.free, NodeType.premium]),
+    body('description').isString().isLength({max: 255, min: 1}),
+    body('http_password').isString().isLength({max: 64, min: 1}),
+    body('node_type').isIn([NodeType.free, NodeType.premium]),
     body('valid').isIn([Valid.valid, Valid.invalid])
 ]), async (req, res) => {
     await Gateway.model.create({
         name: req.body.name,
         host: req.body.host,
-        node_type: req.body.nodeType,
-        http_password: req.body.httpPassword,
+        description: req.body.description,
+        node_type: req.body.node_type,
+        http_password: req.body.http_password,
         valid: req.body.valid
     })
     CommonResponse.success().send(res);
