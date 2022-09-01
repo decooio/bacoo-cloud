@@ -13,6 +13,7 @@ import {BillingOrder} from "../dao/BillingOrder";
 import sequelize from "../db/mysql";
 import {Transaction} from "sequelize";
 import {BillingPlan} from "../dao/BillingPlan";
+import { CidBlacklist } from "../dao/CidBlacklist";
 
 export const router = express.Router();
 
@@ -180,3 +181,22 @@ router.post('/user/order', validate([
     CommonResponse.success().send(res);
 })
 
+router.post('/cid/defriend/:cid', validate([
+    param('cid').custom(async v => {
+        const u = await CidBlacklist.model.findOne({
+            attributes: ['id'],
+            where: {
+                cid: v,
+                deleted: 0
+            }
+        })
+        if (_.isEmpty(u)) {
+            throw new Error('CID exsits');
+        }
+    })
+]), async (req, res) => {
+    await CidBlacklist.model.create({
+        cid: req.params.cid
+    })
+    CommonResponse.success().send(res);
+})
