@@ -28,8 +28,8 @@ export class Tickets {
         }
     );
 
-    static selectTicketListByUserId(userId: number){
-       return selectTicketListByUserId(userId)
+    static selectTicketListByUserId(userId: number,pageNum: number, pageSize: number){
+       return selectTicketListByUserId(userId,pageNum,pageSize)
     }
 
     static selectTicketByUserIdAndRequestId(userId: number,requestId:number){
@@ -43,14 +43,14 @@ export class TicketResults {
     results: any[];
 }
 
-async function selectTicketListByUserId(userId: number): Promise<any> {
+async function selectTicketListByUserId(userId: number,pageNum: number, pageSize: number): Promise<any> {
     const count = await selectPinObjectCountByQuery(userId);
     const ticketResults = new TicketResults();
     ticketResults.count = count;
     if (count > 0) {
       const result = sequelize.query(
-        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where is_delete = 0 and user_id = ?',
-        [userId]
+        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = 0 and user_id = ? ORDER BY create_time DESC LIMIT ?,?',
+        [userId,pageNum,pageSize]
       );
       ticketResults.results = result;
     } else {

@@ -100,12 +100,15 @@ router.get('/gateway/list', async (req: any, res) => {
     CommonResponse.success(await Gateway.queryGatewayByUserId(req.userId)).send(res);
 })
 
-router.get('/tickets/list', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketListByUserId(req.userId)).send(res);
+router.get('/tickets/list',validate([
+    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('pageSize must int and between 1 to 1000'),
+    query('pageNum').isInt({gt: 0}).withMessage('pageNum must int and greater then 0'),
+]), async (req: any, res) => {
+    CommonResponse.success(await Tickets.selectTicketListByUserId(req.userId,req.query.pageNum, req.query.pageSize)).send(res);
 })
 
-router.get('/tickets/info', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.id)).send(res);
+router.get('/tickets/info/:id', async (req: any, res) => {
+    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
 })
 
 router.post('/tickets/report/:userId',validate([
