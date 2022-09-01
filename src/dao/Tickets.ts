@@ -67,7 +67,7 @@ function selectPinObjectCountByQuery(userId: number): Promise<number> {
 }
 
 async function selectTicketsByRequestIdAndUserId(
-  id: string,
+  id: number,
   userId: number
 ): Promise<any> {
   const result = await sequelize.queryForObj(
