@@ -9,9 +9,10 @@ const dayjs = require("dayjs");
 import {Op} from "sequelize";
 import * as _ from "lodash";
 import {validate} from "../middleware/validator";
-import {body, param} from "express-validator";
+import {body, param, query} from "express-validator";
 import {cryptoPassword} from "../util/commonUtils";
 import {Gateway} from "../dao/Gateway";
+import {PinObject} from "../dao/PinObject";
 import { Tickets } from "../dao/Tickets";
 
 export const router = express.Router();
@@ -126,3 +127,10 @@ router.post('/tickets/report/:userId',validate([
     }
 );
 
+router.get('/file/list', validate([
+    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('pageSize must int and between 1 to 1000'),
+    query('pageNum').isInt({gt: 0}).withMessage('pageNum must int and greater then 0'),
+]), async (req: any, res: any) => {
+    const files = await PinObject.queryFilesByApiKeyIdAndPageParams(req.apiKeyId, req.query.pageNum, req.query.pageSize);
+    CommonResponse.success(files).send(res);
+})
