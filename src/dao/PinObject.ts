@@ -37,4 +37,11 @@ export class PinObject {
             type: QueryTypes.SELECT
         })
     }
+
+    static queryFilesByApiKeyIdAndPageParams(apiKeyId: number, pageNum: number, pageSize: number) {
+        return sequelize.query('SELECT o.cid,DATE_FORMAT(o.create_time,\'%Y-%m-%d %T\') as createTime,f.file_size as fileSize,f.file_type as fileType,o.`name` FROM pin_object o JOIN pin_file f ON o.cid=f.cid WHERE o.deleted=? AND o.api_key_id=? ORDER BY o.create_time DESC LIMIT ?,?', {
+            replacements: [Deleted.undeleted, apiKeyId, (pageNum - 1) * pageSize, Number(pageSize)],
+            type: QueryTypes.SELECT
+        })
+    }
 }
