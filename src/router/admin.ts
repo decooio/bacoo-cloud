@@ -190,7 +190,7 @@ router.post('/cid/defriend/:cid', validate([
                 deleted: Deleted.undeleted
             }
         })
-        if (_.isEmpty(u)) {
+        if (!_.isEmpty(u)) {
             throw new Error('CID exsits');
         }
     })
@@ -198,5 +198,30 @@ router.post('/cid/defriend/:cid', validate([
     await CidBlacklist.model.create({
         cid: req.params.cid
     })
+    CommonResponse.success().send(res);
+})
+
+router.post('/cid/free/:cid', validate([
+    param('cid').custom(async v => {
+        const u = await CidBlacklist.model.findOne({
+            attributes: ['id'],
+            where: {
+                cid: v,
+                deleted: Deleted.undeleted
+            }
+        })
+        if (_.isEmpty(u)) {
+            throw new Error('CID not exsits');
+        }
+    })
+]), async (req, res) => {
+    await CidBlacklist.model.update({
+        deleted: Deleted.deleted,
+    }, {
+        where: {
+            deleted: Deleted.undeleted,
+            cid: req.params.cid
+        }
+    });
     CommonResponse.success().send(res);
 })
