@@ -108,7 +108,7 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.params.id)).send(res);
+    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
 })
 
 router.post('/tickets/report/:userId',validate([

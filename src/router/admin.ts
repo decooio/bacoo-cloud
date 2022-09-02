@@ -181,45 +181,25 @@ router.post('/user/order', validate([
     CommonResponse.success().send(res);
 })
 
-router.post('/cid/defriend/:cid', validate([
-    param('cid').custom(async v => {
-        const u = await CidBlacklist.model.findOne({
-            attributes: ['id'],
-            where: {
-                cid: v,
-                deleted: Deleted.undeleted
-            }
-        })
-        if (!_.isEmpty(u)) {
-            throw new Error('CID exsits');
-        }
-    })
-]), async (req, res) => {
+router.post('/cid/defriend/:cid', async (req, res) => {
     await CidBlacklist.model.create({
-        cid: req.params.cid
+        cid: req.params.cid,
+        deleted: Deleted.deleted
+    },{
+        ignoreDuplicates: false,
+        updateOnDuplicate: [
+            'cid',
+            'deleted',
+        ],
     })
     CommonResponse.success().send(res);
 })
 
-router.post('/cid/free/:cid', validate([
-    param('cid').custom(async v => {
-        const u = await CidBlacklist.model.findOne({
-            attributes: ['id'],
-            where: {
-                cid: v,
-                deleted: Deleted.undeleted
-            }
-        })
-        if (_.isEmpty(u)) {
-            throw new Error('CID not exsits');
-        }
-    })
-]), async (req, res) => {
+router.post('/cid/free/:cid', async (req, res) => {
     await CidBlacklist.model.update({
-        deleted: Deleted.deleted,
+        deleted: Deleted.undeleted,
     }, {
         where: {
-            deleted: Deleted.undeleted,
             cid: req.params.cid
         }
     });
