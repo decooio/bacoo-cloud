@@ -1,6 +1,6 @@
 import sequelize from '../db/mysql';
-import {DataTypes, Sequelize} from "sequelize";
-import _ from 'lodash';
+import {DataTypes, QueryTypes, Sequelize} from "sequelize";
+import * as _ from "lodash";
 import { Deleted } from '../type/common';
 export class Tickets {
     static model = sequelize.define(
@@ -50,9 +50,10 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     ticketResults.count = count;
     if (count > 0) {
       const result = sequelize.query(
-        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id = ? ORDER BY create_time DESC LIMIT ?,?',
-        [Deleted.undeleted,userId,pageNum,pageSize]
-      );
+          'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
+          replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
+          type: QueryTypes.SELECT
+        });
       ticketResults.results = result;
     } else {
       ticketResults.results = [];
@@ -61,20 +62,29 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
   }
   
 function selectPinObjectCountByQuery(userId: number): Promise<number> {
-    return sequelize.queryForCount(
-      'select count(*) from pin_object where deleted = ? and user_id = ?',
-      [Deleted.undeleted,userId]
-    );
+   return sequelize
+   .query('select count(*) from tickets where deleted = ? and user_id= ?', {
+      replacements: [Deleted.undeleted],
+      type: QueryTypes.SELECT,
+      raw: true
+   })
+   .then((r: any[]) => {
+    if (!_.isEmpty(r)) {
+      const res = r[0];
+      return res[Object.keys(res)[0]];
+    }
+  });
 }
 
 async function selectTicketsByRequestIdAndUserId(
   id: number,
   userId: number
 ): Promise<any> {
-  const result = await sequelize.queryForObj(
-    'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',
-    [Deleted.undeleted,userId, id]
-  );
+  const result = await sequelize.query(
+      'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
+      replacements: [Deleted.undeleted,userId, id],
+      type: QueryTypes.SELECT
+    });
   if (!_.isEmpty(result)) {
     return result;
   } else {

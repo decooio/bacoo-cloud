@@ -108,7 +108,7 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
+    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.params.id)).send(res);
 })
 
 router.post('/tickets/report/:userId',validate([
@@ -120,7 +120,7 @@ router.post('/tickets/report/:userId',validate([
        const maxId: number = await Tickets.model.max('id');
        await Tickets.model.create({
            type: req.body.type,
-           ticket_no: dayjs().format('YYYY-MM-DD')+ '-' + req.body.type + '-' + (maxId + 1),
+           ticket_no: dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1),
            user_id: req.params.userId,
            status: 0,
            description: req.body.description,
