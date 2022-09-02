@@ -1,6 +1,7 @@
 import sequelize from '../db/mysql';
 import {DataTypes, Sequelize} from "sequelize";
 import _ from 'lodash';
+import { Deleted } from '../type/common';
 export class Tickets {
     static model = sequelize.define(
         'tickets',
@@ -17,7 +18,7 @@ export class Tickets {
             stauts: { type: DataTypes.TINYINT, allowNull: false },
             description: { type: DataTypes.TEXT, allowNull: false },
             feedback: { type: DataTypes.TEXT, allowNull: false },
-            deleted: { type: DataTypes.TINYINT, allowNull: false },
+            deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
             create_time: { type: DataTypes.TEXT, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },
