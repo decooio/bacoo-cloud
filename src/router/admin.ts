@@ -2,7 +2,7 @@ import * as express from "express";
 import {validate} from "../middleware/validator";
 import {body, param} from "express-validator";
 import {NodeType} from "../type/gateway";
-import {CommonResponse, Valid} from "../type/common";
+import {CommonResponse, Deleted, Valid} from "../type/common";
 import {Gateway} from "../dao/Gateway";
 import * as _ from "lodash";
 import {User} from "../dao/User";
@@ -187,7 +187,7 @@ router.post('/cid/defriend/:cid', validate([
             attributes: ['id'],
             where: {
                 cid: v,
-                deleted: 0
+                deleted: Deleted.undeleted
             }
         })
         if (_.isEmpty(u)) {

@@ -15,7 +15,7 @@ export class Tickets {
             user_id: { type: DataTypes.INTEGER, allowNull: false },
             ticket_no: { type: DataTypes.STRING, allowNull: false },
             type: { type: DataTypes.TINYINT, allowNull: true },
-            stauts: { type: DataTypes.TINYINT, allowNull: false },
+            status: { type: DataTypes.TINYINT, allowNull: false },
             description: { type: DataTypes.TEXT, allowNull: false },
             feedback: { type: DataTypes.TEXT, allowNull: false },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
@@ -50,8 +50,8 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     ticketResults.count = count;
     if (count > 0) {
       const result = sequelize.query(
-        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = 0 and user_id = ? ORDER BY create_time DESC LIMIT ?,?',
-        [userId,pageNum,pageSize]
+        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id = ? ORDER BY create_time DESC LIMIT ?,?',
+        [Deleted.undeleted,userId,pageNum,pageSize]
       );
       ticketResults.results = result;
     } else {
@@ -62,8 +62,8 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
   
 function selectPinObjectCountByQuery(userId: number): Promise<number> {
     return sequelize.queryForCount(
-      'select count(*) from pin_object where deleted = 0 and user_id = ?',
-      [userId]
+      'select count(*) from pin_object where deleted = ? and user_id = ?',
+      [Deleted.undeleted,userId]
     );
 }
 
@@ -72,8 +72,8 @@ async function selectTicketsByRequestIdAndUserId(
   userId: number
 ): Promise<any> {
   const result = await sequelize.queryForObj(
-    'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = 0 and user_id = ? and id = ?',
-    [userId, id]
+    'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',
+    [Deleted.undeleted,userId, id]
   );
   if (!_.isEmpty(result)) {
     return result;
