@@ -1,6 +1,7 @@
 import sequelize from '../db/mysql';
 import {DataTypes, Sequelize} from "sequelize";
 import _ from 'lodash';
+import { Deleted } from '../type/common';
 export class Tickets {
     static model = sequelize.define(
         'tickets',
@@ -14,10 +15,10 @@ export class Tickets {
             user_id: { type: DataTypes.INTEGER, allowNull: false },
             ticket_no: { type: DataTypes.STRING, allowNull: false },
             type: { type: DataTypes.TINYINT, allowNull: true },
-            stauts: { type: DataTypes.TINYINT, allowNull: false },
+            status: { type: DataTypes.TINYINT, allowNull: false },
             description: { type: DataTypes.TEXT, allowNull: false },
             feedback: { type: DataTypes.TEXT, allowNull: false },
-            deleted: { type: DataTypes.TINYINT, allowNull: false },
+            deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
             create_time: { type: DataTypes.TEXT, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },
@@ -28,8 +29,8 @@ export class Tickets {
         }
     );
 
-    static selectTicketListByUserId(userId: number){
-       return selectTicketListByUserId(userId)
+    static selectTicketListByUserId(userId: number,pageNum: number, pageSize: number){
+       return selectTicketListByUserId(userId,pageNum,pageSize)
     }
 
     static selectTicketByUserIdAndRequestId(userId: number,requestId:number){
@@ -43,14 +44,14 @@ export class TicketResults {
     results: any[];
 }
 
-async function selectTicketListByUserId(userId: number): Promise<any> {
+async function selectTicketListByUserId(userId: number,pageNum: number, pageSize: number): Promise<any> {
     const count = await selectPinObjectCountByQuery(userId);
     const ticketResults = new TicketResults();
     ticketResults.count = count;
     if (count > 0) {
       const result = sequelize.query(
-        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where is_delete = 0 and user_id = ?',
-        [userId]
+        'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id = ? ORDER BY create_time DESC LIMIT ?,?',
+        [Deleted.undeleted,userId,pageNum,pageSize]
       );
       ticketResults.results = result;
     } else {
@@ -61,18 +62,18 @@ async function selectTicketListByUserId(userId: number): Promise<any> {
   
 function selectPinObjectCountByQuery(userId: number): Promise<number> {
     return sequelize.queryForCount(
-      'select count(*) from pin_object where deleted = 0 and user_id = ?',
-      [userId]
+      'select count(*) from pin_object where deleted = ? and user_id = ?',
+      [Deleted.undeleted,userId]
     );
 }
 
 async function selectTicketsByRequestIdAndUserId(
-  id: string,
+  id: number,
   userId: number
 ): Promise<any> {
   const result = await sequelize.queryForObj(
-    'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = 0 and user_id = ? and id = ?',
-    [userId, id]
+    'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',
+    [Deleted.undeleted,userId, id]
   );
   if (!_.isEmpty(result)) {
     return result;

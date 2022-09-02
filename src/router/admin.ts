@@ -2,7 +2,7 @@ import * as express from "express";
 import {validate} from "../middleware/validator";
 import {body, param} from "express-validator";
 import {NodeType} from "../type/gateway";
-import {CommonResponse, Valid} from "../type/common";
+import {CommonResponse, Deleted, Valid} from "../type/common";
 import {Gateway} from "../dao/Gateway";
 import * as _ from "lodash";
 import {User} from "../dao/User";
@@ -181,22 +181,27 @@ router.post('/user/order', validate([
     CommonResponse.success().send(res);
 })
 
-router.post('/cid/defriend/:cid', validate([
-    param('cid').custom(async v => {
-        const u = await CidBlacklist.model.findOne({
-            attributes: ['id'],
-            where: {
-                cid: v,
-                deleted: 0
-            }
-        })
-        if (_.isEmpty(u)) {
-            throw new Error('CID exsits');
-        }
-    })
-]), async (req, res) => {
+router.post('/cid/defriend/:cid', async (req, res) => {
     await CidBlacklist.model.create({
-        cid: req.params.cid
+        cid: req.params.cid,
+        deleted: Deleted.undeleted
+    },{
+        ignoreDuplicates: false,
+        updateOnDuplicate: [
+            'cid',
+            'deleted',
+        ],
     })
+    CommonResponse.success().send(res);
+})
+
+router.post('/cid/free/:cid', async (req, res) => {
+    await CidBlacklist.model.update({
+        deleted: Deleted.deleted,
+    }, {
+        where: {
+            cid: req.params.cid
+        }
+    });
     CommonResponse.success().send(res);
 })
