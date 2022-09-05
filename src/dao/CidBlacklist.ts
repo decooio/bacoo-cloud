@@ -13,7 +13,7 @@ export class CidBlacklist {
             },
             cid: { type: DataTypes.STRING, allowNull: false },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
-            create_time: { type: DataTypes.TEXT, allowNull: false, defaultValue: Sequelize.fn('NOW') },
+            create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },
         {
