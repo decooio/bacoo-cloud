@@ -184,7 +184,7 @@ router.post('/user/order', validate([
 router.post('/cid/defriend/:cid', async (req, res) => {
     await CidBlacklist.model.create({
         cid: req.params.cid,
-        deleted: Deleted.deleted
+        deleted: Deleted.undeleted
     },{
         ignoreDuplicates: false,
         updateOnDuplicate: [
@@ -197,7 +197,7 @@ router.post('/cid/defriend/:cid', async (req, res) => {
 
 router.post('/cid/free/:cid', async (req, res) => {
     await CidBlacklist.model.update({
-        deleted: Deleted.undeleted,
+        deleted: Deleted.deleted,
     }, {
         where: {
             cid: req.params.cid
