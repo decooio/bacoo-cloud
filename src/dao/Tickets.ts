@@ -49,11 +49,12 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     const ticketResults = new TicketResults();
     ticketResults.count = count;
     if (count > 0) {
-      const result = sequelize.query(
+       const result = await sequelize.query(
           'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
+        console.log("-------"+JSON.stringify(result))
       ticketResults.results = result;
     } else {
       ticketResults.results = [];
@@ -61,7 +62,7 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     return ticketResults;
   }
   
-function selectPinObjectCountByQuery(userId: number): Promise<number> {
+  async function selectPinObjectCountByQuery(userId: number): Promise<number> {
    return sequelize
    .query('select count(*) from tickets where deleted = ? and user_id= ?', {
       replacements: [Deleted.undeleted,userId],
