@@ -194,3 +194,9 @@ router.get('/file/list', validate([
     const files = await PinObject.queryFilesByApiKeyIdAndPageParams(req.apiKeyId, req.query.pageNum, req.query.pageSize);
     CommonResponse.success(files).send(res);
 })
+
+router.get('/file/list/size', validate([
+]), async (req: any, res: any) => {
+    const files = await PinObject.queryFilesCountByApiKeyIdAndPageParams(req.apiKeyId);
+    CommonResponse.success((_.head(files) as any).fileSize).send(res);
+})
