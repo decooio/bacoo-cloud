@@ -169,17 +169,16 @@ router.get('/tickets/info/:id', async (req: any, res) => {
     CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
 })
 
-router.post('/tickets/report/:userId',validate([
+router.post('/tickets/report',validate([
       body('description').isString().notEmpty().withMessage('description not empty'),
       body('feedback').isString().notEmpty().withMessage('feedback not empty'),
-      body('type').optional().isInt(),
-      param('userId').isString().notEmpty(),
-    ]),async (req, res) => {
+      body('type').optional().isInt()
+    ]),async (req:any, res) => {
        const maxId: number = await Tickets.model.max('id');
        await Tickets.model.create({
            type: req.body.type,
            ticket_no: dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1),
-           user_id: req.params.userId,
+           user_id: req.userId,
            status: 0,
            description: req.body.description,
            feedback: req.body.feedback,

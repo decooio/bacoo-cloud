@@ -64,7 +64,7 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
 function selectPinObjectCountByQuery(userId: number): Promise<number> {
    return sequelize
    .query('select count(*) from tickets where deleted = ? and user_id= ?', {
-      replacements: [Deleted.undeleted],
+      replacements: [Deleted.undeleted,userId],
       type: QueryTypes.SELECT,
       raw: true
    })
