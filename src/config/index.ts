@@ -12,11 +12,11 @@ export const CONFIGS = {
         location: '../sql',
     },
     mysql: {
-        host: getEnv('MYSQL_HOST', 'localhost'),
-        port: getEnv('MYSQL_PORT', 23306),
+        host: getEnv('MYSQL_HOST', '47.108.228.150'),
+        port: getEnv('MYSQL_PORT', 3306),
         database: 'bacoo_cloud',
         user: getEnv('MYSQL_USER', 'root'),
-        password: getEnv('MYSQL_PASSWORD', 'root'),
+        password: getEnv('MYSQL_PASSWORD', 'Wjd@2021'),
     },
     redis: {
         host: getEnv('REDIS_HOST', 'localhost'),
