@@ -10,10 +10,12 @@ import {Op} from "sequelize";
 import * as _ from "lodash";
 import {validate} from "../middleware/validator";
 import {body, param, query} from "express-validator";
-import {cryptoPassword} from "../util/commonUtils";
+import {cryptoPassword, randomNumber} from "../util/commonUtils";
 import {Gateway} from "../dao/Gateway";
 import {PinObject} from "../dao/PinObject";
 import { Tickets } from "../dao/Tickets";
+import {redis} from "../util/redisUtils";
+import {sendVerifySms} from "../util/smsUtils";
 
 export const router = express.Router();
 
@@ -88,6 +90,62 @@ router.post('/password/change', validate([
     }
     await User.model.update({
         password: cryptoPassword(req.body.newPassword)
+    }, {
+        where: {
+            id: req.userId
+        }
+    });
+    CommonResponse.success().send(res);
+})
+
+function mobileChangeCacheKey(mobile: string): string {
+    return `SMS_CHANGE_MOBILE::${mobile}`;
+}
+
+router.post('/mobile/change/sms', validate([
+    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+    body('mobile').custom(async (mobile, {req}) => {
+        const user = await User.model.findOne({
+            attributes: ['id'],
+            where: {
+                mobile
+            }
+        });
+        if (!_.isEmpty(user)) {
+            throw new Error('Mobile conflict');
+        }
+    }),
+]), async (req: any, res) => {
+    const code = randomNumber(6);
+    await redis.set(mobileChangeCacheKey(req.body.mobile), code,'EX', 5 * 60);
+    await sendVerifySms(req.body.mobile, code);
+    CommonResponse.success().send(res);
+})
+
+router.post('/mobile/change', validate([
+    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+    body('mobile').custom(async (mobile, {req}) => {
+        const user = await User.model.findOne({
+            attributes: ['id'],
+            where: {
+                mobile
+            }
+        });
+        if (!_.isEmpty(user) && user.id !== req.userId) {
+            throw new Error('Mobile conflict');
+        }
+    }),
+    body('smsCode').isLength({max: 6, min: 6}).withMessage('Invalid sms code'),
+    body('smsCode').custom(async (value, {req}) => {
+        const smsCode = await redis.get(mobileChangeCacheKey(req.body.mobile));
+        if (value !== smsCode) {
+            throw Error('Invalid sms code');
+        }
+        return true;
+    })
+]), async (req: any, res) => {
+    await User.model.update({
+        mobile: req.body.mobile
     }, {
         where: {
             id: req.userId
