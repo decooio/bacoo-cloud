@@ -13,7 +13,7 @@ import {BillingOrder} from "../dao/BillingOrder";
 import sequelize from "../db/mysql";
 import {Transaction} from "sequelize";
 import {BillingPlan} from "../dao/BillingPlan";
-import { CidBlacklist } from "../dao/CidBlacklist";
+import {CidBlacklist} from "../dao/CidBlacklist";
 
 export const router = express.Router();
 
@@ -191,7 +191,7 @@ router.post('/cid/defriend/:cid', async (req, res) => {
             'cid',
             'deleted',
         ],
-    })
+    });
     CommonResponse.success().send(res);
 })
 

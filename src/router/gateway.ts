@@ -1,6 +1,6 @@
 import * as express from "express";
 import {NodeType} from "../type/gateway";
-import {CommonResponse, Valid} from "../type/common";
+import {CommonResponse, Deleted, Valid} from "../type/common";
 import {UserApiKey} from "../dao/UserApiKey";
 import * as _ from "lodash";
 import {User} from "../dao/User";
@@ -14,6 +14,7 @@ import {GatewayUser} from "../dao/GatewayUser";
 import {logger} from "../util/logUtil";
 import {DownloadRecord} from "../dao/DownloadRecord";
 import {PinFolderFile} from "../dao/PinFolderFile";
+import {CidBlacklist} from "../dao/CidBlacklist";
 const dayjs = require("dayjs");
 
 export const router = express.Router();
@@ -56,6 +57,16 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
     });
     if (_.isEmpty(user)) {
         return CommonResponse.badRequest('Invalid uuid').send(res);
+    }
+    const invalidFile = await CidBlacklist.model.findOne({
+        attributes: ['id'],
+        where: {
+            cid: req.params.cid,
+            deleted: Deleted.undeleted
+        }
+    });
+    if (!_.isEmpty(invalidFile)) {
+        return CommonResponse.badRequest('Cid in black list').send(res);
     }
     if (gateway.node_type === NodeType.premium) {
         const gu = await GatewayUser.model.findOne({

@@ -31,6 +31,7 @@ export class Gateway {
     static async queryGatewayByUserId(userId: number): Promise<any[]> {
         return sequelize.query('SELECT\n' +
             '\tg.`host`,\n' +
+            '\tg.`id`,\n' +
             '\tg.node_type as `nodeType`, \n' +
             '\tg.\`name\` \n' +
             'FROM\n' +
