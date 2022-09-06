@@ -17,6 +17,7 @@ import { Tickets } from "../dao/Tickets";
 import {redis} from "../util/redisUtils";
 import {sendVerifySms} from "../util/smsUtils";
 import { Intention } from "../dao/Intention";
+import { TicketsStatus } from "../type/tickets";
 
 export const router = express.Router();
 
@@ -179,7 +180,7 @@ router.post('/tickets/report',validate([
            type: req.body.type,
            ticket_no: dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1),
            user_id: req.userId,
-           status: 0,
+           status: TicketsStatus.committed,
            description: req.body.description,
        });
     CommonResponse.success().send(res);
@@ -214,3 +215,51 @@ router.post('/intention',validate([
   CommonResponse.success().send(res);
   }
 );
+
+router.post('/tickets/feedback/resolved/:id',validate([
+    param('id').custom(async v => {
+        const g = await Tickets.model.findOne({
+            attributes: ['id'],
+            where: {
+                id: v,
+                status: TicketsStatus.replied
+            }
+        });
+        if (_.isEmpty(g)) {
+            throw new Error('Invalid operation')
+        }
+    })
+]), async (req, res) => {
+    await Tickets.model.update({
+           status: TicketsStatus.resolved
+    }, {
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success().send(res);
+})
+
+router.post('/tickets/feedback/unresolved/:id', validate([
+    param('id').custom(async v => {
+        const g = await Tickets.model.findOne({
+            attributes: ['id'],
+            where: {
+                id: v,
+                status: TicketsStatus.replied
+            }
+        });
+        if (_.isEmpty(g)) {
+            throw new Error('Invalid operation')
+        }
+    })
+]),async (req, res) => {
+    await Tickets.model.update({
+           status: TicketsStatus.unresolved
+    }, {
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success().send(res);
+})
