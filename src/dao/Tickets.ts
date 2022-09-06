@@ -17,7 +17,7 @@ export class Tickets {
             type: { type: DataTypes.TINYINT, allowNull: true },
             status: { type: DataTypes.TINYINT, allowNull: false },
             description: { type: DataTypes.TEXT, allowNull: false },
-            feedback: { type: DataTypes.TEXT, allowNull: false },
+            feedback: { type: DataTypes.TEXT, allowNull: true },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
