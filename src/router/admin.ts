@@ -212,6 +212,7 @@ router.post('/tickets/save/:id', async (req, res) => {
     await Tickets.model.update({
            description: req.body.description,
            feedback: req.body.feedback,
+           status: req.body.status
     }, {
         where: {
             id: req.params.id

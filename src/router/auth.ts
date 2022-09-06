@@ -172,7 +172,6 @@ router.get('/tickets/info/:id', async (req: any, res) => {
 
 router.post('/tickets/report',validate([
       body('description').isString().notEmpty().withMessage('description not empty'),
-      body('feedback').isString().notEmpty().withMessage('feedback not empty'),
       body('type').optional().isInt()
     ]),async (req:any, res) => {
        const maxId: number = await Tickets.model.max('id');
@@ -182,7 +181,6 @@ router.post('/tickets/report',validate([
            user_id: req.userId,
            status: 0,
            description: req.body.description,
-           feedback: req.body.feedback,
        });
     CommonResponse.success().send(res);
     }
