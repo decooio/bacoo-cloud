@@ -16,6 +16,7 @@ import {PinObject} from "../dao/PinObject";
 import { Tickets } from "../dao/Tickets";
 import {redis} from "../util/redisUtils";
 import {sendVerifySms} from "../util/smsUtils";
+import { Intention } from "../dao/Intention";
 
 export const router = express.Router();
 
@@ -166,7 +167,7 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
+    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.params.id,req.userId)).send(res);
 })
 
 router.post('/tickets/report',validate([
@@ -200,3 +201,18 @@ router.get('/file/list/size', validate([
     const files = await PinObject.queryFilesCountByApiKeyIdAndPageParams(req.apiKeyId);
     CommonResponse.success((_.head(files) as any).fileSize).send(res);
 })
+
+router.post('/intention',validate([
+    body('storageType').isInt(),
+    body('gatewayType').isInt(),
+    body('requirment').isString().notEmpty().withMessage('requirment not empty'),
+  ]),async (req:any, res) => {
+     await Intention.model.create({
+        storage_type: req.body.storageType,
+        gateway_type: req.body.gatewayType,
+        requirement: req.body.requirment,
+        user_id: req.userId,
+     });
+  CommonResponse.success().send(res);
+  }
+);
