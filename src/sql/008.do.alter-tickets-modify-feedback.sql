@@ -1,0 +1,1 @@
+ALTER TABLE  `bacoo_cloud`.`tickets` MODIFY  `feedback` TEXT  DEFAULT NULL;
