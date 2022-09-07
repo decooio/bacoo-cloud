@@ -42,7 +42,7 @@ export const CONFIGS = {
       },
 }
 
-function getEnv(key: string, defaultValue: string | number): string | number {
+export function getEnv(key: string, defaultValue: string | number): string | number {
     const result = process.env[key] || defaultValue;
     return typeof defaultValue === 'string' ? result : Number(result);
 }

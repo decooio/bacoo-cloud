@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import {CONFIGS} from "../config";
+import {CONFIGS, getEnv} from "../config";
 import { logger } from './logUtil';
 const axios = require('axios');
 const crypto = require('crypto');
@@ -42,9 +42,4 @@ export async function sendMarkdown(title: string,text: string,critical = false) 
       error.stack
     );
   }
-}
-
-function getEnv(key: string, defaultValue: string | number): string | number {
-    const result = process.env[key] || defaultValue;
-    return typeof defaultValue === 'string' ? result : Number(result);
 }
