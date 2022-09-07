@@ -33,7 +33,13 @@ export const CONFIGS = {
         storage_size: getEnv('DEFAULT_STORAGE_SIZE', 1024 * 1024 * 100),
         download_size: getEnv('DEFAULT_DOWNLOAD_SIZE', 1024 * 1024 * 100),
         expire_period: getEnv('DEFAULT_EXPIRE_PERIOD', 6),
-    }
+    },
+    dingtalk: {
+        notificationUrl: getEnv('DINGTALK_NOTIFICATION_URL', ''),
+        notificationSecret: getEnv('DINGTALK_NOTIFICATION_SECRET', ''),
+        criticalNotificationUrl: getEnv('DINGTALK_CRITICAL_NOTIFICATION_URL', ''),
+        criticalNotificationSecret: getEnv('DINGTALK_CRITICAL_NOTIFICATION_SECRET','' ),
+      },
 }
 
 function getEnv(key: string, defaultValue: string | number): string | number {
