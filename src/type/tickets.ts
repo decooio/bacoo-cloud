@@ -4,3 +4,8 @@ export enum TicketsStatus {
     resolved,
     unresolved
 }
+
+export enum TicketsType {
+    "技术支持",
+    "用户意向" 
+ } 

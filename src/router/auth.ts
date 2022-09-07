@@ -17,7 +17,9 @@ import { Tickets } from "../dao/Tickets";
 import {redis} from "../util/redisUtils";
 import {sendVerifySms} from "../util/smsUtils";
 import { Intention } from "../dao/Intention";
-import { TicketsStatus } from "../type/tickets";
+import { TicketsStatus, TicketsType } from "../type/tickets";
+import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
+import { sendMarkdown } from "../util/dingtalk";
 
 export const router = express.Router();
 
@@ -175,13 +177,19 @@ router.post('/tickets/report',validate([
       body('type').optional().isInt()
     ]),async (req:any, res) => {
        const maxId: number = await Tickets.model.max('id');
+       const ticketNo = dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1);
        await Tickets.model.create({
            type: req.body.type,
-           ticket_no: dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1),
+           ticket_no: ticketNo,
            user_id: req.userId,
            status: TicketsStatus.committed,
-           description: req.body.description,
+           description: req.body.description
        });
+       let content = "# 收到新的工单提醒"+ '\n\n';
+       content += '- 编号：' + ticketNo + '\n\n';
+       content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
+       content += '- 描述：' + req.body.description;
+   sendMarkdown('# 收到新的工单提醒', content)
     CommonResponse.success().send(res);
     }
 );
@@ -210,7 +218,13 @@ router.post('/intention',validate([
         gateway_type: req.body.gatewayType,
         requirement: req.body.requirment,
         user_id: req.userId,
+        status: IntentionStatus.unreplied
      });
+     let content = "# 收到新的意向提醒"+ '\n\n';
+         content += '- 偏好存储量：' + Storagetype[req.body.storageType] + '\n\n';
+         content += '- 网关：' + GatewayTyoe[req.body.gatewayType] + '\n\n';
+         content += '- 需求：' + req.body.requirment;
+     sendMarkdown('# 收到新的意向', content)
   CommonResponse.success().send(res);
   }
 );
