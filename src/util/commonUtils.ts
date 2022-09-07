@@ -101,3 +101,7 @@ class Stack {
         return objString;
     }
 }
+
+export function queryToObj(queryRes: any) {
+    return JSON.parse(JSON.stringify(queryRes));
+  }

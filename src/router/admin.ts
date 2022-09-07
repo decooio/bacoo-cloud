@@ -15,6 +15,7 @@ import {Transaction} from "sequelize";
 import {BillingPlan} from "../dao/BillingPlan";
 import {CidBlacklist} from "../dao/CidBlacklist";
 import { Tickets } from "../dao/Tickets";
+import { Intention } from "../dao/Intention";
 
 export const router = express.Router();
 
@@ -212,6 +213,17 @@ router.post('/tickets/save/:id', async (req, res) => {
     await Tickets.model.update({
            description: req.body.description,
            feedback: req.body.feedback,
+           status: req.body.status
+    }, {
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success().send(res);
+})
+
+router.post('/intention/save/:id', async (req, res) => {
+    await Intention.model.update({
            status: req.body.status
     }, {
         where: {
