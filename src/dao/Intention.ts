@@ -13,6 +13,7 @@ export class Intention {
                 allowNull: false,
             },
             user_id: { type: DataTypes.INTEGER, allowNull: false },
+            status: { type: DataTypes.INTEGER, allowNull: false },
             storage_type: { type: DataTypes.TINYINT, allowNull: true },
             gateway_type: { type: DataTypes.TINYINT, allowNull: true },
             requirement: { type: DataTypes.TEXT, allowNull: false },

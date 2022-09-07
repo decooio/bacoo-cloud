@@ -9,6 +9,7 @@ import {router as authRouter} from "../router/auth";
 import {router as adminRouter} from "../router/admin";
 import {router as gatewayRouter} from "../router/gateway";
 import {admin, auth, gateway} from "../middleware/auth";
+import { sendMarkdown } from '../util/dingtalk';
 
 export const serverStart = async (port: string | number) => {
     const app = express();
@@ -29,6 +30,7 @@ export const serverStart = async (port: string | number) => {
     app.use((err: any, req: any, res: any, next: any) => {
         logger.error(`Server err: ${err.stack}`)
         logger.error(`Server err: ${err.message}`)
+        sendMarkdown('# server err', err.message)
         CommonResponse.serverError('server err').send(res);
     });
     logger.info(`Server start on: ${port}`);
