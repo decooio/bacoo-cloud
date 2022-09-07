@@ -2,9 +2,9 @@ import sequelize from '../db/mysql';
 import {DataTypes, QueryTypes, Sequelize} from "sequelize";
 import * as _ from "lodash";
 import { Deleted } from '../type/common';
-export class Tickets {
+export class Intention {
     static model = sequelize.define(
-        'tickets',
+        'intention',
         {
             id: {
                 type: DataTypes.BIGINT,
@@ -13,11 +13,9 @@ export class Tickets {
                 allowNull: false,
             },
             user_id: { type: DataTypes.INTEGER, allowNull: false },
-            ticket_no: { type: DataTypes.STRING, allowNull: false },
-            type: { type: DataTypes.TINYINT, allowNull: true },
-            status: { type: DataTypes.TINYINT, allowNull: false },
-            description: { type: DataTypes.TEXT, allowNull: false },
-            feedback: { type: DataTypes.TEXT, allowNull: true },
+            storage_type: { type: DataTypes.TINYINT, allowNull: true },
+            gateway_type: { type: DataTypes.TINYINT, allowNull: true },
+            requirement: { type: DataTypes.TEXT, allowNull: false },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
@@ -54,6 +52,7 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
+        console.log("-------"+JSON.stringify(result))
       ticketResults.results = result;
     } else {
       ticketResults.results = [];
@@ -81,7 +80,7 @@ async function selectTicketsByRequestIdAndUserId(
   userId: number
 ): Promise<any> {
   const result = await sequelize.query(
-      'select ticket_no as ticketNo,type,status,feedback,description,DATE_FORMAT(create_time,\'%Y-%m-%d %T\') as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
+      'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
       replacements: [Deleted.undeleted,userId, id],
       type: QueryTypes.SELECT
     });

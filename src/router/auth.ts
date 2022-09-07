@@ -16,6 +16,8 @@ import {PinObject} from "../dao/PinObject";
 import { Tickets } from "../dao/Tickets";
 import {redis} from "../util/redisUtils";
 import {sendVerifySms} from "../util/smsUtils";
+import { Intention } from "../dao/Intention";
+import { TicketsStatus } from "../type/tickets";
 
 export const router = express.Router();
 
@@ -62,13 +64,12 @@ router.get('/user/profile', async (req: any, res: any) => {
             user_id: req.userId
         }
     });
-
     CommonResponse.success({
         info: user,
         plan: {
             ...userPlan.dataValues,
-            storageExpireTime: dayjs(userPlan.storageExpireTime).format('YYYY-MM-DD HH:mm:ss'),
-            downloadExpireTime: dayjs(userPlan.downloadExpireTime).format('YYYY-MM-DD HH:mm:ss'),
+            storageExpireTime: dayjs(userPlan.dataValues.storageExpireTime).format('YYYY-MM-DD HH:mm:ss'),
+            downloadExpireTime: dayjs(userPlan.dataValues.downloadExpireTime).format('YYYY-MM-DD HH:mm:ss'),
             orderType: _.isEmpty(order) ? BillingOrderType.free : BillingOrderType.premium
         },
     }).send(res);
@@ -166,23 +167,20 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.userId,req.parms.id)).send(res);
+    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.params.id,req.userId)).send(res);
 })
 
-router.post('/tickets/report/:userId',validate([
+router.post('/tickets/report',validate([
       body('description').isString().notEmpty().withMessage('description not empty'),
-      body('feedback').isString().notEmpty().withMessage('feedback not empty'),
-      body('type').optional().isInt(),
-      param('userId').isString().notEmpty(),
-    ]),async (req, res) => {
+      body('type').optional().isInt()
+    ]),async (req:any, res) => {
        const maxId: number = await Tickets.model.max('id');
        await Tickets.model.create({
            type: req.body.type,
            ticket_no: dayjs().format('YYYYMMDD')+ '-' + req.body.type + '-' + (maxId + 1),
-           user_id: req.params.userId,
-           status: 0,
+           user_id: req.userId,
+           status: TicketsStatus.committed,
            description: req.body.description,
-           feedback: req.body.feedback,
        });
     CommonResponse.success().send(res);
     }
@@ -194,4 +192,73 @@ router.get('/file/list', validate([
 ]), async (req: any, res: any) => {
     const files = await PinObject.queryFilesByApiKeyIdAndPageParams(req.apiKeyId, req.query.pageNum, req.query.pageSize);
     CommonResponse.success(files).send(res);
+})
+
+router.get('/file/list/size', validate([
+]), async (req: any, res: any) => {
+    const files = await PinObject.queryFilesCountByApiKeyIdAndPageParams(req.apiKeyId);
+    CommonResponse.success((_.head(files) as any).fileSize).send(res);
+})
+
+router.post('/intention',validate([
+    body('storageType').isInt(),
+    body('gatewayType').isInt(),
+    body('requirment').isString().notEmpty().withMessage('requirment not empty'),
+  ]),async (req:any, res) => {
+     await Intention.model.create({
+        storage_type: req.body.storageType,
+        gateway_type: req.body.gatewayType,
+        requirement: req.body.requirment,
+        user_id: req.userId,
+     });
+  CommonResponse.success().send(res);
+  }
+);
+
+router.post('/tickets/feedback/resolved/:id',validate([
+    param('id').custom(async v => {
+        const g = await Tickets.model.findOne({
+            attributes: ['id'],
+            where: {
+                id: v,
+                status: TicketsStatus.replied
+            }
+        });
+        if (_.isEmpty(g)) {
+            throw new Error('Invalid operation')
+        }
+    })
+]), async (req, res) => {
+    await Tickets.model.update({
+           status: TicketsStatus.resolved
+    }, {
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success().send(res);
+})
+
+router.post('/tickets/feedback/unresolved/:id', validate([
+    param('id').custom(async v => {
+        const g = await Tickets.model.findOne({
+            attributes: ['id'],
+            where: {
+                id: v,
+                status: TicketsStatus.replied
+            }
+        });
+        if (_.isEmpty(g)) {
+            throw new Error('Invalid operation')
+        }
+    })
+]),async (req, res) => {
+    await Tickets.model.update({
+           status: TicketsStatus.unresolved
+    }, {
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success().send(res);
 })

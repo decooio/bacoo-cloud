@@ -44,4 +44,11 @@ export class PinObject {
             type: QueryTypes.SELECT
         })
     }
+
+    static queryFilesCountByApiKeyIdAndPageParams(apiKeyId: number) {
+        return sequelize.query('SELECT count(*) as fileSize FROM pin_object o JOIN pin_object_gateway g ON g.pin_object_id=o.id JOIN gateway w ON w.id=g.gateway_id JOIN pin_file f ON o.cid=f.cid WHERE o.deleted=? AND o.api_key_id=? ORDER BY o.create_time', {
+            replacements: [Deleted.undeleted, apiKeyId],
+            type: QueryTypes.SELECT
+        })
+    }
 }

@@ -14,6 +14,7 @@ import sequelize from "../db/mysql";
 import {Transaction} from "sequelize";
 import {BillingPlan} from "../dao/BillingPlan";
 import {CidBlacklist} from "../dao/CidBlacklist";
+import { Tickets } from "../dao/Tickets";
 
 export const router = express.Router();
 
@@ -184,7 +185,7 @@ router.post('/user/order', validate([
 router.post('/cid/defriend/:cid', async (req, res) => {
     await CidBlacklist.model.create({
         cid: req.params.cid,
-        deleted: Deleted.deleted
+        deleted: Deleted.undeleted
     },{
         ignoreDuplicates: false,
         updateOnDuplicate: [
@@ -197,10 +198,24 @@ router.post('/cid/defriend/:cid', async (req, res) => {
 
 router.post('/cid/free/:cid', async (req, res) => {
     await CidBlacklist.model.update({
-        deleted: Deleted.undeleted,
+        deleted: Deleted.deleted,
     }, {
         where: {
             cid: req.params.cid
+        }
+    });
+    CommonResponse.success().send(res);
+})
+
+
+router.post('/tickets/save/:id', async (req, res) => {
+    await Tickets.model.update({
+           description: req.body.description,
+           feedback: req.body.feedback,
+           status: req.body.status
+    }, {
+        where: {
+            id: req.params.id
         }
     });
     CommonResponse.success().send(res);

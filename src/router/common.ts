@@ -103,15 +103,23 @@ router.post('/login', validate([
     body('username').isString().withMessage('Invalid username'),
     body('password').isString().withMessage('Invalid password')
 ]), async (req, res) => {
-    const user = await User.model.findOne({
+    let user = await User.model.findOne({
         where: {
             nick_name: req.body.username,
             password: cryptoPassword(req.body.password),
         }
     });
     if (_.isEmpty(user)) {
-        CommonResponse.badRequest('Invalid username or password').send(res);
-        return;
+        user = await User.model.findOne({
+            where: {
+                mobile: req.body.username,
+                password: cryptoPassword(req.body.password),
+            }
+        });
+        if (_.isEmpty(user)) {
+            CommonResponse.badRequest('Invalid username or password').send(res);
+            return;
+        }
     }
     const apiKey = await UserApiKey.model.findOne({
         where: {
