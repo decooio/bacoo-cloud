@@ -1,5 +1,5 @@
 import * as express from "express";
-import {CommonResponse} from "../type/common";
+import {CommonResponse, Deleted, Valid} from "../type/common";
 import {UserApiKey} from "../dao/UserApiKey";
 import {User} from "../dao/User";
 import {BillingPlan} from "../dao/BillingPlan";
@@ -18,6 +18,7 @@ import {redis} from "../util/redisUtils";
 import {sendVerifySms} from "../util/smsUtils";
 import { Intention } from "../dao/Intention";
 import { TicketsStatus, TicketsType } from "../type/tickets";
+import {CidBlacklist} from "../dao/CidBlacklist";
 import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
 import { sendMarkdown } from "../util/dingtalk";
 
@@ -208,6 +209,21 @@ router.get('/file/list', validate([
     query('pageNum').isInt({gt: 0}).withMessage('pageNum must int and greater then 0'),
 ]), async (req: any, res: any) => {
     const files = await PinObject.queryFilesByApiKeyIdAndPageParams(req.apiKeyId, req.query.pageNum, req.query.pageSize);
+    if (!_.isEmpty(files)) {
+        const cid = _.map(files, i => i.cid);
+        const blackList = await CidBlacklist.model.findAll({
+            attributes: ['cid'],
+            where: {
+                cid,
+                deleted: Deleted.undeleted
+            }
+        });
+        const blackListGroup = _.groupBy(blackList, i => i.cid);
+        return CommonResponse.success(_.map(files, i => ({
+            ...i,
+            valid: _.isEmpty(blackListGroup[i.cid]) ? Valid.valid : Valid.invalid
+        }))).send(res);
+    }
     CommonResponse.success(files).send(res);
 })
 
