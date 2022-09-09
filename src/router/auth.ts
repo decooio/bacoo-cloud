@@ -71,8 +71,8 @@ router.get('/user/profile', async (req: any, res: any) => {
         info: user,
         plan: {
             ...userPlan.dataValues,
-            storageExpireTime: dayjs(userPlan.dataValues.storageExpireTime).format('YYYY-MM-DD HH:mm:ss'),
-            downloadExpireTime: dayjs(userPlan.dataValues.downloadExpireTime).format('YYYY-MM-DD HH:mm:ss'),
+            storageExpireTime: dayjs(userPlan.dataValues.storageExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            downloadExpireTime: dayjs(userPlan.dataValues.downloadExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
             orderType: _.isEmpty(order) ? BillingOrderType.free : BillingOrderType.premium
         },
     }).send(res);
@@ -221,6 +221,7 @@ router.get('/file/list', validate([
         const blackListGroup = _.groupBy(blackList, i => i.cid);
         return CommonResponse.success(_.map(files, i => ({
             ...i,
+            createTime: dayjs(i.createTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
             valid: _.isEmpty(blackListGroup[i.cid]) ? Valid.valid : Valid.invalid
         }))).send(res);
     }
