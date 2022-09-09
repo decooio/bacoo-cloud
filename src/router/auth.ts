@@ -89,7 +89,7 @@ router.post('/password/change', validate([
         }
     });
     if (_.isEmpty(user)) {
-        CommonResponse.badRequest('Invalid old password').send(res);
+        CommonResponse.badRequest('旧密码错误').send(res);
         return;
     }
     await User.model.update({
@@ -116,7 +116,7 @@ router.post('/mobile/change/sms', validate([
             }
         });
         if (!_.isEmpty(user)) {
-            throw new Error('Mobile conflict');
+            throw new Error('手机号已存在');
         }
     }),
 ]), async (req: any, res) => {
@@ -136,14 +136,14 @@ router.post('/mobile/change', validate([
             }
         });
         if (!_.isEmpty(user) && user.id !== req.userId) {
-            throw new Error('Mobile conflict');
+            throw new Error('手机号已存在');
         }
     }),
-    body('smsCode').isLength({max: 6, min: 6}).withMessage('Invalid sms code'),
+    body('smsCode').isLength({max: 6, min: 6}).withMessage('验证码有误'),
     body('smsCode').custom(async (value, {req}) => {
         const smsCode = await redis.get(mobileChangeCacheKey(req.body.mobile));
         if (value !== smsCode) {
-            throw Error('Invalid sms code');
+            throw Error('验证码有误');
         }
         return true;
     })
@@ -163,8 +163,8 @@ router.get('/gateway/list', async (req: any, res) => {
 })
 
 router.get('/tickets/list',validate([
-    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('pageSize must int and between 1 to 1000'),
-    query('pageNum').isInt({gt: 0}).withMessage('pageNum must int and greater then 0'),
+    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('单页数量大于1小于1000'),
+    query('pageNum').isInt({gt: 0}).withMessage('页码大于0'),
 ]), async (req: any, res) => {
     CommonResponse.success(await Tickets.selectTicketListByUserId(req.userId,req.query.pageNum, req.query.pageSize)).send(res);
 })
@@ -174,7 +174,7 @@ router.get('/tickets/info/:id', async (req: any, res) => {
 })
 
 router.post('/tickets/report',validate([
-      body('description').isString().notEmpty().withMessage('description not empty'),
+      body('description').isString().notEmpty().withMessage('描述不能为空'),
       body('type').optional().isInt()
     ]),async (req:any, res) => {
         const user = await User.model.findOne({
@@ -199,14 +199,14 @@ router.post('/tickets/report',validate([
        content += '- 编号：' + ticketNo + '\n\n';
        content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
        content += '- 描述：' + req.body.description;
-   sendMarkdown('# 收到新的工单提醒', content)
+    await sendMarkdown('# 收到新的工单提醒', content)
     CommonResponse.success().send(res);
     }
 );
 
 router.get('/file/list', validate([
-    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('pageSize must int and between 1 to 1000'),
-    query('pageNum').isInt({gt: 0}).withMessage('pageNum must int and greater then 0'),
+    query('pageSize').isInt({gt: 0, lt: 1000}).withMessage('单页数量大于1小于1000'),
+    query('pageNum').isInt({gt: 0}).withMessage('页码大于0'),
 ]), async (req: any, res: any) => {
     const files = await PinObject.queryFilesByApiKeyIdAndPageParams(req.apiKeyId, req.query.pageNum, req.query.pageSize);
     if (!_.isEmpty(files)) {
@@ -236,7 +236,7 @@ router.get('/file/list/size', validate([
 router.post('/intention',validate([
     body('storageType').isInt(),
     body('gatewayType').isInt(),
-    body('requirment').isString().notEmpty().withMessage('requirment not empty'),
+    body('requirement').isString().notEmpty().withMessage('需求不能为空'),
   ]),async (req:any, res) => {
     const user  = await User.model.findOne({
         attributes: [
@@ -249,7 +249,7 @@ router.post('/intention',validate([
      await Intention.model.create({
         storage_type: req.body.storageType,
         gateway_type: req.body.gatewayType,
-        requirement: req.body.requirment,
+        requirement: req.body.requirement,
         user_id: req.userId,
         status: IntentionStatus.unreplied
      });
@@ -258,9 +258,8 @@ router.post('/intention',validate([
          content += '- 偏好存储量：' + Storagetype[req.body.storageType] + '\n\n';
          content += '- 网关：' + GatewayTyoe[req.body.gatewayType] + '\n\n';
          content += '- 需求：' + req.body.requirment;
-         console.log("------"+content)
-     sendMarkdown('# 收到新的意向', content)
-  CommonResponse.success().send(res);
+    await sendMarkdown('# 收到新的意向', content)
+    CommonResponse.success().send(res);
   }
 );
 
@@ -274,7 +273,7 @@ router.post('/tickets/feedback/resolved/:id',validate([
             }
         });
         if (_.isEmpty(g)) {
-            throw new Error('Invalid operation')
+            throw new Error('无效的参数')
         }
     })
 ]), async (req, res) => {
@@ -298,7 +297,7 @@ router.post('/tickets/feedback/unresolved/:id', validate([
             }
         });
         if (_.isEmpty(g)) {
-            throw new Error('Invalid operation')
+            throw new Error('无效的参数')
         }
     })
 ]),async (req, res) => {

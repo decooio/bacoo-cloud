@@ -53,14 +53,13 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
-        console.log("-------"+JSON.stringify(result))
-      ticketResults.results = result;
+       ticketResults.results = result;
     } else {
-      ticketResults.results = [];
+       ticketResults.results = [];
     }
     return ticketResults;
   }
-  
+
   async function selectPinObjectCountByQuery(userId: number): Promise<number> {
    return sequelize
    .query('select count(*) from tickets where deleted = ? and user_id= ?', {

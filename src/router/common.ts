@@ -34,7 +34,7 @@ function smsCacheKey(mobile: string): string {
 }
 
 router.get('/verify/svg', validate([
-    query('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+    query('mobile').isMobilePhone('zh-CN').withMessage('手机号有误'),
 ]),async (req: any, res) => {
     const captcha = svgCaptcha.create();
     await redis.set(verifyCacheKey(req.query.mobile), captcha.text,'EX', 5 * 60);
@@ -42,8 +42,8 @@ router.get('/verify/svg', validate([
 });
 
 router.post('/verify/sms', validate([
-    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
-    body('verifyCode').isString().withMessage('Invalid verifyCode')
+    body('mobile').isMobilePhone('zh-CN').withMessage('手机号有误'),
+    body('verifyCode').isString().withMessage('验证码有误')
 ]), async (req: any, res) => {
     const result = await redis.get(verifyCacheKey(req.body.mobile));
     if (req.body.verifyCode.toUpperCase() === (result || '').toUpperCase()) {
@@ -54,7 +54,7 @@ router.post('/verify/sms', validate([
                 }
             });
             if (_.isEmpty(user)) {
-                CommonResponse.badRequest('Invalid mobile').send(res);
+                CommonResponse.badRequest('手机号有误').send(res);
                 return;
             }
         }
@@ -63,18 +63,18 @@ router.post('/verify/sms', validate([
         await sendVerifySms(req.body.mobile, code);
         CommonResponse.success().send(res);
     } else {
-        CommonResponse.badRequest('Invalid verifyCode').send(res);
+        CommonResponse.badRequest('验证码有误').send(res);
     }
 });
 
 router.post('/reset/password', validate([
-    body('password').isLength({min: 6, max: 16}).withMessage('Invalid password'),
-    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
-    body('smsCode').isLength({max: 6, min: 6}).withMessage('Invalid sms code'),
+    body('password').isLength({min: 6, max: 16}).withMessage('密码有误'),
+    body('mobile').isMobilePhone('zh-CN').withMessage('手机号有误'),
+    body('smsCode').isLength({max: 6, min: 6}).withMessage('短信验证码有误'),
     body('smsCode').custom(async (value, {req}) => {
         const smsCode = await redis.get(smsCacheKey(req.body.mobile));
         if (value !== smsCode) {
-            throw Error('Invalid sms code');
+            throw Error('短信验证码有误');
         }
         return true;
     })
@@ -86,7 +86,7 @@ router.post('/reset/password', validate([
         }
     });
    if (_.isEmpty(user)) {
-       CommonResponse.badRequest('Invalid mobile').send(res);
+       CommonResponse.badRequest('手机号有误').send(res);
        return;
    }
    await User.model.update({
@@ -100,8 +100,8 @@ router.post('/reset/password', validate([
 });
 
 router.post('/login', validate([
-    body('username').isString().withMessage('Invalid username'),
-    body('password').isString().withMessage('Invalid password')
+    body('username').isString().withMessage('用户名有误'),
+    body('password').isString().withMessage('密码有误')
 ]), async (req, res) => {
     let user = await User.model.findOne({
         where: {
@@ -117,7 +117,7 @@ router.post('/login', validate([
             }
         });
         if (_.isEmpty(user)) {
-            CommonResponse.badRequest('Invalid username or password').send(res);
+            CommonResponse.badRequest('用户名密码有误').send(res);
             return;
         }
     }
@@ -142,7 +142,7 @@ router.post('/login', validate([
 
 router.post('/user',
     validate([
-        body('username').isLength({min: 4, max: 32}).withMessage('Invalid username'),
+        body('username').isLength({min: 4, max: 32}).withMessage('用户名不符合要求'),
         body('username').custom(async (value, {req}) => {
             if (!_.isEmpty(await User.model.findOne({
                 attributes: ['id'],
@@ -150,11 +150,11 @@ router.post('/user',
                     nick_name: value
                 }
             }))) {
-                throw new Error('Username exist');
+                throw new Error('用户名已存在');
             }
         }),
-        body('password').isLength({min: 6, max: 16}).withMessage('Invalid password'),
-        body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+        body('password').isLength({min: 6, max: 16}).withMessage('密码不符合要求'),
+        body('mobile').isMobilePhone('zh-CN').withMessage('手机号不符合要求'),
         body('mobile').custom(async (value, {req}) => {
             if (!_.isEmpty(await User.model.findOne({
                 attributes: ['id'],
@@ -162,14 +162,14 @@ router.post('/user',
                     mobile: value
                 }
             }))) {
-                throw new Error('Mobile exist');
+                throw new Error('手机号已注册');
             }
         }),
-        body('smsCode').isLength({max: 6, min: 6}).withMessage('Invalid sms code'),
+        body('smsCode').isLength({max: 6, min: 6}).withMessage('短信验证码有误'),
         body('smsCode').custom(async (value, {req}) => {
             const smsCode = await redis.get(smsCacheKey(req.body.mobile));
             if (value !== smsCode) {
-                throw Error('Invalid sms code');
+                throw Error('短信验证码有误');
             }
             return true;
         })
