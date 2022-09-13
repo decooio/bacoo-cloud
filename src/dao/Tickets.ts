@@ -16,6 +16,7 @@ export class Tickets {
             ticket_no: { type: DataTypes.STRING, allowNull: false },
             type: { type: DataTypes.TINYINT, allowNull: true },
             status: { type: DataTypes.TINYINT, allowNull: false },
+            title: { type: DataTypes.STRING, allowNull: false },
             description: { type: DataTypes.TEXT, allowNull: false },
             feedback: { type: DataTypes.TEXT, allowNull: true },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
@@ -50,7 +51,7 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     ticketResults.count = count;
     if (count > 0) {
        const result = await sequelize.query(
-          'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
+          'select id,ticket_no as ticketNo,title,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
@@ -81,7 +82,7 @@ async function selectTicketsByRequestIdAndUserId(
   userId: number
 ): Promise<any> {
   const result = await sequelize.query(
-      'select ticket_no as ticketNo,type,status,feedback,description,DATE_FORMAT(create_time,\'%Y-%m-%d %T\') as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
+      'select ticket_no as ticketNo,type,title,status,feedback,description,DATE_FORMAT(create_time,\'%Y-%m-%d %T\') as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
       replacements: [Deleted.undeleted,userId, id],
       type: QueryTypes.SELECT
     });

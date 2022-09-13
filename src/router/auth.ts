@@ -174,7 +174,8 @@ router.get('/tickets/info/:id', async (req: any, res) => {
 })
 
 router.post('/tickets/report',validate([
-      body('description').isString().notEmpty().withMessage('描述不能为空'),
+      body('description').isString().notEmpty().withMessage('description not empty'),
+      body('title').isString().notEmpty().withMessage('title not empty'),
       body('type').optional().isInt()
     ]),async (req:any, res) => {
         const user = await User.model.findOne({
@@ -190,15 +191,17 @@ router.post('/tickets/report',validate([
        await Tickets.model.create({
            type: req.body.type,
            ticket_no: ticketNo,
+           title: req.body.title,
            user_id: req.userId,
            status: TicketsStatus.committed,
            description: req.body.description
        });
        let content = "# 收到新的工单提醒"+ '\n\n';
-       content += '- 用户名：' + queryToObj(user).username + '\n\n';
-       content += '- 编号：' + ticketNo + '\n\n';
-       content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
-       content += '- 描述：' + req.body.description;
+           content += '- 用户名：' + queryToObj(user).username + '\n\n';
+           content += '- 标题：' + req.body.title + '\n\n';
+           content += '- 编号：' + ticketNo + '\n\n';
+           content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
+           content += '- 描述：' + req.body.description;
     await sendMarkdown('# 收到新的工单提醒', content)
     CommonResponse.success().send(res);
     }
