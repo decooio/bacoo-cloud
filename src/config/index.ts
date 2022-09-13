@@ -29,6 +29,10 @@ export const CONFIGS = {
         SmsSdkAppId: getEnv('SMS_SDK_APP_ID', ''),
         TemplateId: getEnv('SMS_TEMPLATE_ID', ''),
     },
+    email: {
+        user: getEnv('VERIFY_EMAIL_ADDR', ''),
+        password: getEnv('VERIFY_EMAIL_PASS', ''),
+    },
     billing: {
         storage_size: getEnv('DEFAULT_STORAGE_SIZE', 1024 * 1024 * 100),
         download_size: getEnv('DEFAULT_DOWNLOAD_SIZE', 1024 * 1024 * 100),
@@ -39,7 +43,7 @@ export const CONFIGS = {
         notificationSecret: getEnv('DINGTALK_NOTIFICATION_SECRET', ''),
         criticalNotificationUrl: getEnv('DINGTALK_CRITICAL_NOTIFICATION_URL', ''),
         criticalNotificationSecret: getEnv('DINGTALK_CRITICAL_NOTIFICATION_SECRET','' ),
-      },
+    },
 }
 
 export function getEnv(key: string, defaultValue: string | number): string | number {
