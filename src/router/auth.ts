@@ -196,12 +196,12 @@ router.post('/tickets/report',validate([
            description: req.body.description
        });
        let content = "# 收到新的工单提醒"+ '\n\n';
-       content += '- 用户名：' + queryToObj(user).username + '\n\n';
-       content += '- 标题：' + req.body.title + '\n\n';
-       content += '- 编号：' + ticketNo + '\n\n';
-       content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
-       content += '- 描述：' + req.body.description;
-   sendMarkdown('# 收到新的工单提醒', content)
+           content += '- 用户名：' + queryToObj(user).username + '\n\n';
+           content += '- 标题：' + req.body.title + '\n\n';
+           content += '- 编号：' + ticketNo + '\n\n';
+           content += '- 类型：' + TicketsType[req.body.type] + '\n\n';
+           content += '- 描述：' + req.body.description;
+       sendMarkdown('# 收到新的工单提醒', content)
     CommonResponse.success().send(res);
     }
 );
@@ -246,7 +246,7 @@ router.post('/intention',validate([
          content += '- 网关：' + GatewayTyoe[req.body.gatewayType] + '\n\n';
          content += '- 需求：' + req.body.requirment;
          console.log("------"+content)
-    // sendMarkdown('# 收到新的意向', content)
+     sendMarkdown('# 收到新的意向', content)
   CommonResponse.success().send(res);
   }
 );
