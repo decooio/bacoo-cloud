@@ -133,8 +133,16 @@ router.post('/login', validate([
             }
         });
         if (_.isEmpty(user)) {
-            CommonResponse.badRequest('用户名密码有误').send(res);
-            return;
+            user = await User.model.findOne({
+                where: {
+                    email: req.body.username,
+                    password: cryptoPassword(req.body.password),
+                }
+            });
+            if (_.isEmpty(user)) {
+                CommonResponse.badRequest('用户名密码有误').send(res);
+                return;
+            }
         }
     }
     const apiKey = await UserApiKey.model.findOne({

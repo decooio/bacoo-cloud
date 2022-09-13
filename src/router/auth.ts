@@ -38,7 +38,8 @@ router.get('/user/profile', async (req: any, res: any) => {
     const user = await User.model.findOne({
         attributes: [
             ['nick_name', 'username'],
-            'mobile'
+            'mobile',
+            'email'
         ],
         where: {
             id: req.userId,
