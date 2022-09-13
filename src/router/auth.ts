@@ -48,6 +48,7 @@ router.get('/user/profile', async (req: any, res: any) => {
     const order = await BillingOrder.model.findOne({
         attributes:['id'],
         where: {
+            user_id: req.userId,
             order_type: BillingOrderType.premium,
             expire_time: {
                 [Op.gte]: dayjs().format('YYYY-MM-DD HH:mm:ss')
