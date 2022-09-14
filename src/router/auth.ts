@@ -272,22 +272,7 @@ router.post('/intention',validate([
   }
 );
 
-router.post('/tickets/feedback/resolved/:id',validate([
-    param('id').custom(async v => {
-        const g = await Tickets.model.findOne({
-            attributes: ['id'],
-            where: {
-                id: v,
-                status:{
-                    [Op.lte]: TicketsStatus.replied
-                } 
-            }
-        });
-        if (_.isEmpty(g)) {
-            throw new Error('无效的参数')
-        }
-    })
-]), async (req, res) => {
+router.post('/tickets/feedback/resolved/:id', async (req, res) => {
     await Tickets.model.update({
            status: TicketsStatus.resolved
     }, {
@@ -305,7 +290,7 @@ router.post('/tickets/feedback/unresolved/:id', validate([
             where: {
                 id: v,
                 status:{
-                    [Op.lte]: TicketsStatus.replied
+                    [Op.eq]: TicketsStatus.resolved
                 } 
             }
         });
