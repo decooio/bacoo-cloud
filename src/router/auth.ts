@@ -175,7 +175,26 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.params.id,req.userId)).send(res);
+    const tickets = await Tickets.model.findOne({
+        attributes: [
+          'type',
+          'title',
+          'status',
+          'feedback',
+          'description',
+          ['ticket_no', 'ticketNo'],
+          ['create_time', 'reportTime'],       
+          ['feedback_time', 'feedbackTime']   
+        ],
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success({
+        ...tickets.dataValues,
+        feedbackTime: dayjs.tz(tickets.dataValues.feedbackTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+        reportTime: dayjs.tz(tickets.dataValues.reportTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+    }).send(res);
 })
 
 router.post('/tickets/report',validate([

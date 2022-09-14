@@ -34,10 +34,6 @@ export class Tickets {
     static selectTicketListByUserId(userId: number,pageNum: number, pageSize: number){
        return selectTicketListByUserId(userId,pageNum,pageSize)
     }
-
-    static selectTicketByUserIdAndRequestId(userId: number,requestId:number){
-      return selectTicketsByRequestIdAndUserId(userId,requestId)
-   }
 }
 
 
@@ -52,7 +48,7 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     ticketResults.count = count;
     if (count > 0) {
        const result = await sequelize.query(
-          'select id,ticket_no as ticketNo,title,type,status,feedback,DATE_FORMAT(feedback_time,\'%Y-%m-%d %T\') as feedbackTime,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
+          'select id,ticket_no as ticketNo,title,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
@@ -76,20 +72,4 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
       return res[Object.keys(res)[0]];
     }
   });
-}
-
-async function selectTicketsByRequestIdAndUserId(
-  id: number,
-  userId: number
-): Promise<any> {
-  const result = await sequelize.query(
-      'select ticket_no as ticketNo,type,title,status,feedback,DATE_FORMAT(feedback_time,\'%Y-%m-%d %T\') as feedbackTime,description,DATE_FORMAT(create_time,\'%Y-%m-%d %T\') as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
-      replacements: [Deleted.undeleted,userId, id],
-      type: QueryTypes.SELECT
-    });
-  if (!_.isEmpty(result)) {
-    return result;
-  } else {
-    return null;
-  }
 }
