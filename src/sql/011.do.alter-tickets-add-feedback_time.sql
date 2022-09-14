@@ -1,0 +1,1 @@
+ALTER TABLE `bacoo_cloud`.`tickets` ADD COLUMN `feedback_time` timestamp  NULL COMMENT '反馈时间'  AFTER `deleted`;

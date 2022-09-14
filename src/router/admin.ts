@@ -213,6 +213,7 @@ router.post('/tickets/save/:id', async (req, res) => {
     await Tickets.model.update({
            description: req.body.description,
            feedback: req.body.feedback,
+           feedback_time: dayjs(),
            title: req.body.title,
            status: req.body.status
     }, {

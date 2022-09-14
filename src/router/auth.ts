@@ -175,7 +175,26 @@ router.get('/tickets/list',validate([
 })
 
 router.get('/tickets/info/:id', async (req: any, res) => {
-    CommonResponse.success(await Tickets.selectTicketByUserIdAndRequestId(req.params.id,req.userId)).send(res);
+    const tickets = await Tickets.model.findOne({
+        attributes: [
+          'type',
+          'title',
+          'status',
+          'feedback',
+          'description',
+          ['ticket_no', 'ticketNo'],
+          ['create_time', 'reportTime'],       
+          ['feedback_time', 'feedbackTime']   
+        ],
+        where: {
+            id: req.params.id
+        }
+    });
+    CommonResponse.success({
+        ...tickets.dataValues,
+        feedbackTime: dayjs.tz(tickets.dataValues.feedbackTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+        reportTime: dayjs.tz(tickets.dataValues.reportTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+    }).send(res);
 })
 
 router.post('/tickets/report',validate([
@@ -272,22 +291,7 @@ router.post('/intention',validate([
   }
 );
 
-router.post('/tickets/feedback/resolved/:id',validate([
-    param('id').custom(async v => {
-        const g = await Tickets.model.findOne({
-            attributes: ['id'],
-            where: {
-                id: v,
-                status:{
-                    [Op.lte]: TicketsStatus.replied
-                } 
-            }
-        });
-        if (_.isEmpty(g)) {
-            throw new Error('无效的参数')
-        }
-    })
-]), async (req, res) => {
+router.post('/tickets/feedback/resolved/:id', async (req, res) => {
     await Tickets.model.update({
            status: TicketsStatus.resolved
     }, {
@@ -305,7 +309,7 @@ router.post('/tickets/feedback/unresolved/:id', validate([
             where: {
                 id: v,
                 status:{
-                    [Op.lte]: TicketsStatus.replied
+                    [Op.eq]: TicketsStatus.resolved
                 } 
             }
         });

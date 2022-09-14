@@ -20,6 +20,7 @@ export class Tickets {
             description: { type: DataTypes.TEXT, allowNull: false },
             feedback: { type: DataTypes.TEXT, allowNull: true },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
+            feedback_time: { type: DataTypes.DATE, allowNull: true},
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },
@@ -33,10 +34,6 @@ export class Tickets {
     static selectTicketListByUserId(userId: number,pageNum: number, pageSize: number){
        return selectTicketListByUserId(userId,pageNum,pageSize)
     }
-
-    static selectTicketByUserIdAndRequestId(userId: number,requestId:number){
-      return selectTicketsByRequestIdAndUserId(userId,requestId)
-   }
 }
 
 
@@ -75,20 +72,4 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
       return res[Object.keys(res)[0]];
     }
   });
-}
-
-async function selectTicketsByRequestIdAndUserId(
-  id: number,
-  userId: number
-): Promise<any> {
-  const result = await sequelize.query(
-      'select ticket_no as ticketNo,type,title,status,feedback,description,DATE_FORMAT(create_time,\'%Y-%m-%d %T\') as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
-      replacements: [Deleted.undeleted,userId, id],
-      type: QueryTypes.SELECT
-    });
-  if (!_.isEmpty(result)) {
-    return result;
-  } else {
-    return null;
-  }
 }
