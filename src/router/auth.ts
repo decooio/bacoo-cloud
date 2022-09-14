@@ -273,7 +273,9 @@ router.post('/tickets/feedback/resolved/:id',validate([
             attributes: ['id'],
             where: {
                 id: v,
-                status: TicketsStatus.replied
+                status:{
+                    [Op.lte]: TicketsStatus.replied
+                } 
             }
         });
         if (_.isEmpty(g)) {
@@ -297,7 +299,9 @@ router.post('/tickets/feedback/unresolved/:id', validate([
             attributes: ['id'],
             where: {
                 id: v,
-                status: TicketsStatus.replied
+                status:{
+                    [Op.lte]: TicketsStatus.replied
+                } 
             }
         });
         if (_.isEmpty(g)) {
