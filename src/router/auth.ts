@@ -6,6 +6,10 @@ import {BillingPlan} from "../dao/BillingPlan";
 import {BillingOrder} from "../dao/BillingOrder";
 import {BillingOrderType} from "../type/order";
 const dayjs = require("dayjs");
+const utc = require('dayjs/plugin/utc')
+const timezone = require('dayjs/plugin/timezone') // dependent on utc plugin
+dayjs.extend(utc)
+dayjs.extend(timezone)
 import {Op} from "sequelize";
 import * as _ from "lodash";
 import {validate} from "../middleware/validator";
@@ -23,7 +27,6 @@ import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
 import { sendMarkdown } from "../util/dingtalk";
 
 export const router = express.Router();
-
 router.get('/key/list', async (req: any, res) => {
     const list = await UserApiKey.model.findAll({
         attributes: ['address', 'signature', 'valid'],
@@ -38,7 +41,8 @@ router.get('/user/profile', async (req: any, res: any) => {
     const user = await User.model.findOne({
         attributes: [
             ['nick_name', 'username'],
-            'mobile'
+            'mobile',
+            'email'
         ],
         where: {
             id: req.userId,
@@ -47,6 +51,7 @@ router.get('/user/profile', async (req: any, res: any) => {
     const order = await BillingOrder.model.findOne({
         attributes:['id'],
         where: {
+            user_id: req.userId,
             order_type: BillingOrderType.premium,
             expire_time: {
                 [Op.gte]: dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -71,8 +76,8 @@ router.get('/user/profile', async (req: any, res: any) => {
         info: user,
         plan: {
             ...userPlan.dataValues,
-            storageExpireTime: dayjs(userPlan.dataValues.storageExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
-            downloadExpireTime: dayjs(userPlan.dataValues.downloadExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            storageExpireTime: dayjs.tz(userPlan.dataValues.storageExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            downloadExpireTime: dayjs.tz(userPlan.dataValues.downloadExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
             orderType: _.isEmpty(order) ? BillingOrderType.free : BillingOrderType.premium
         },
     }).send(res);
@@ -224,7 +229,7 @@ router.get('/file/list', validate([
         const blackListGroup = _.groupBy(blackList, i => i.cid);
         return CommonResponse.success(_.map(files, i => ({
             ...i,
-            createTime: dayjs(i.createTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            createTime: dayjs.tz(i.createTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
             valid: _.isEmpty(blackListGroup[i.cid]) ? Valid.valid : Valid.invalid
         }))).send(res);
     }
