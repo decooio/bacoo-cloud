@@ -1,5 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import BigNumber from "bignumber.js";
+const dayjs = require("dayjs");
+const utc = require('dayjs/plugin/utc')
+const timezone = require('dayjs/plugin/timezone') // dependent on utc plugin
+dayjs.extend(utc)
+dayjs.extend(timezone)
 const crypto = require("crypto");
 
 export function sleep(time: number) {
@@ -21,6 +26,10 @@ export function md5(str: string): string {
 
 export function cryptoPassword(pass: string): string {
     return Buffer.from(md5(pass)).toString('base64');
+}
+
+export function formatTimezone(date: any): string {
+    return dayjs.tz(date, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
 
 export function randomNumber(length: number) {

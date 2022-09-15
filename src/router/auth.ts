@@ -6,15 +6,11 @@ import {BillingPlan} from "../dao/BillingPlan";
 import {BillingOrder} from "../dao/BillingOrder";
 import {BillingOrderType} from "../type/order";
 const dayjs = require("dayjs");
-const utc = require('dayjs/plugin/utc')
-const timezone = require('dayjs/plugin/timezone') // dependent on utc plugin
-dayjs.extend(utc)
-dayjs.extend(timezone)
 import {Op} from "sequelize";
 import * as _ from "lodash";
 import {validate} from "../middleware/validator";
 import {body, param, query} from "express-validator";
-import {cryptoPassword, queryToObj, randomNumber} from "../util/commonUtils";
+import {cryptoPassword, formatTimezone, queryToObj, randomNumber} from "../util/commonUtils";
 import {Gateway} from "../dao/Gateway";
 import {PinObject} from "../dao/PinObject";
 import { Tickets } from "../dao/Tickets";
@@ -76,8 +72,8 @@ router.get('/user/profile', async (req: any, res: any) => {
         info: user,
         plan: {
             ...userPlan.dataValues,
-            storageExpireTime: dayjs.tz(userPlan.dataValues.storageExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
-            downloadExpireTime: dayjs.tz(userPlan.dataValues.downloadExpireTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            storageExpireTime: formatTimezone(userPlan.dataValues.storageExpireTime),
+            downloadExpireTime: formatTimezone(userPlan.dataValues.downloadExpireTime),
             orderType: _.isEmpty(order) ? BillingOrderType.free : BillingOrderType.premium
         },
     }).send(res);
@@ -183,8 +179,8 @@ router.get('/tickets/info/:id', async (req: any, res) => {
           'feedback',
           'description',
           ['ticket_no', 'ticketNo'],
-          ['create_time', 'reportTime'],       
-          ['feedback_time', 'feedbackTime']   
+          ['create_time', 'reportTime'],
+          ['feedback_time', 'feedbackTime']
         ],
         where: {
             id: req.params.id
@@ -192,8 +188,8 @@ router.get('/tickets/info/:id', async (req: any, res) => {
     });
     CommonResponse.success({
         ...tickets.dataValues,
-        feedbackTime: dayjs.tz(tickets.dataValues.feedbackTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
-        reportTime: dayjs.tz(tickets.dataValues.reportTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+        feedbackTime: formatTimezone(tickets.dataValues.feedbackTime),
+        reportTime: formatTimezone(tickets.dataValues.reportTime),
     }).send(res);
 })
 
@@ -248,7 +244,7 @@ router.get('/file/list', validate([
         const blackListGroup = _.groupBy(blackList, i => i.cid);
         return CommonResponse.success(_.map(files, i => ({
             ...i,
-            createTime: dayjs.tz(i.createTime, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+            createTime: formatTimezone(i.createTime),
             valid: _.isEmpty(blackListGroup[i.cid]) ? Valid.valid : Valid.invalid
         }))).send(res);
     }
@@ -310,7 +306,7 @@ router.post('/tickets/feedback/unresolved/:id', validate([
                 id: v,
                 status:{
                     [Op.eq]: TicketsStatus.resolved
-                } 
+                }
             }
         });
         if (_.isEmpty(g)) {
