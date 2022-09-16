@@ -31,7 +31,7 @@ export const serverStart = async (port: string | number) => {
         logger.error(`Server err: ${err.stack}`)
         logger.error(`Server err: ${err.message}`)
         sendMarkdown('# server err', err.message)
-        CommonResponse.serverError('server err').send(res);
+        CommonResponse.serverError('服务器响应异常').send(res);
     });
     logger.info(`Server start on: ${port}`);
     app.listen(port);

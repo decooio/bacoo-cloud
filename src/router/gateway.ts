@@ -28,20 +28,20 @@ router.get('/verify/upload/:address', async (req: any, res) => {
         }
     });
     if (_.isEmpty(apiKey)) {
-        return CommonResponse.badRequest('Invalid api key').send(res);
+        return CommonResponse.badRequest('无效的ApiKey').send(res);
     }
     const userPlan = await BillingPlan.queryBillingPlanByApiKeyId(apiKey.id);
     if (_.isEmpty(userPlan)
         || new BigNumber(userPlan.used_storage_size).comparedTo(userPlan.max_storage_size) >= 0
         || dayjs(userPlan.storage_expire_time).isBefore(dayjs())) {
-        return CommonResponse.forbidden('Storage plan out of limit').send(res);
+        return CommonResponse.forbidden('大于存储上限').send(res);
     }
     switch (gateway.node_type) {
         case NodeType.free:
             return CommonResponse.success().send(res);
         case NodeType.premium:
             const u = _.find(req.gatewayUser, {'address': req.params.address});
-            return (_.isEmpty(u) ? CommonResponse.unauthorized('Need auth') : CommonResponse.success(req.gatewayUser)).send(res);
+            return (_.isEmpty(u) ? CommonResponse.unauthorized('需要权限') : CommonResponse.success(req.gatewayUser)).send(res);
     }
 });
 
@@ -56,7 +56,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
         }
     });
     if (_.isEmpty(user)) {
-        return CommonResponse.badRequest('Invalid uuid').send(res);
+        return CommonResponse.badRequest('无效的UUID').send(res);
     }
     const invalidFile = await CidBlacklist.model.findOne({
         attributes: ['id'],
@@ -66,7 +66,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
         }
     });
     if (!_.isEmpty(invalidFile)) {
-        return CommonResponse.badRequest('Cid in black list').send(res);
+        return CommonResponse.badRequest('非法的文件').send(res);
     }
     if (gateway.node_type === NodeType.premium) {
         const gu = await GatewayUser.model.findOne({
@@ -77,7 +77,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
             }
         });
         if (_.isEmpty(gu)) {
-            return CommonResponse.unauthorized('No auth to access').send(res);
+            return CommonResponse.unauthorized('无访问权限').send(res);
         }
     }
     let pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
@@ -99,7 +99,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
             const usedDownloadSize = new BigNumber(userPlan.used_download_size);
             let valid = usedDownloadSize.comparedTo(userPlan.max_download_size) < 0 && dayjs(userPlan.download_expire_time).isAfter(dayjs());
             if (file_type === FileType.folder) {
-                (valid ? CommonResponse.success() : CommonResponse.forbidden('Plan overdue')).send(res);
+                (valid ? CommonResponse.success() : CommonResponse.forbidden('超出余量上限')).send(res);
             } else {
                 const usedSize = usedDownloadSize.plus(file_size);
                 if (valid && usedSize.comparedTo(userPlan.max_download_size) <= 0) {
@@ -120,12 +120,12 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
                     });
                     CommonResponse.success().send(res);
                 } else {
-                    CommonResponse.forbidden('Plan overdue').send(res);
+                    CommonResponse.forbidden('超出余量上限').send(res);
                 }
             }
         });
     } else {
-        return CommonResponse.notfound('Invalid cid').send(res);
+        return CommonResponse.notfound('无效的CID').send(res);
     }
 
 })
