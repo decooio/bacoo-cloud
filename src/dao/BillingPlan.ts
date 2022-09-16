@@ -29,9 +29,9 @@ export class BillingPlan {
         }
     );
 
-    static async queryBillingPlanByApiKeyId(apiKeyId: number): Promise<any> {
-        const result = await sequelize.query(`SELECT b.* from user_api_key a join billing_plan b on a.user_id = b.user_id where a.id = ?`, {
-            replacements: [apiKeyId],
+    static async queryBillingPlanByApiKeyId(userId: number): Promise<any> {
+        const result = await sequelize.query(`SELECT * from billing_plan where user_id = ?`, {
+            replacements: [userId],
             type: QueryTypes.SELECT
         });
         if (!_.isEmpty(result)) {

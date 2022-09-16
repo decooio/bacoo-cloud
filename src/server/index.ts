@@ -10,6 +10,7 @@ import {router as adminRouter} from "../router/admin";
 import {router as gatewayRouter} from "../router/gateway";
 import {admin, auth, gateway} from "../middleware/auth";
 import { sendMarkdown } from '../util/dingtalk';
+import {ResponseMessage} from "../constant";
 
 export const serverStart = async (port: string | number) => {
     const app = express();
@@ -31,7 +32,7 @@ export const serverStart = async (port: string | number) => {
         logger.error(`Server err: ${err.stack}`)
         logger.error(`Server err: ${err.message}`)
         sendMarkdown('# server err', err.message)
-        CommonResponse.serverError('服务器响应异常').send(res);
+        CommonResponse.serverError(ResponseMessage.SERVER_ERR).send(res);
     });
     logger.info(`Server start on: ${port}`);
     app.listen(port);

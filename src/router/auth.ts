@@ -21,6 +21,7 @@ import { TicketsStatus, TicketsType } from "../type/tickets";
 import {CidBlacklist} from "../dao/CidBlacklist";
 import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
 import { sendMarkdown } from "../util/dingtalk";
+import {ResponseMessage} from "../constant";
 
 export const router = express.Router();
 router.get('/key/list', async (req: any, res) => {
@@ -90,7 +91,7 @@ router.post('/password/change', validate([
         }
     });
     if (_.isEmpty(user)) {
-        CommonResponse.badRequest('旧密码错误').send(res);
+        CommonResponse.badRequest(ResponseMessage.OLD_PASSWORD_NOT_MATCH).send(res);
         return;
     }
     await User.model.update({
@@ -117,7 +118,7 @@ router.post('/mobile/change/sms', validate([
             }
         });
         if (!_.isEmpty(user)) {
-            throw new Error('手机号已存在');
+            throw new Error(ResponseMessage.MOBILE_EXIST);
         }
     }),
 ]), async (req: any, res) => {
@@ -137,7 +138,7 @@ router.post('/mobile/change', validate([
             }
         });
         if (!_.isEmpty(user) && user.id !== req.userId) {
-            throw new Error('手机号已存在');
+            throw new Error(ResponseMessage.MOBILE_EXIST);
         }
     }),
     body('smsCode').isLength({max: 6, min: 6}).withMessage('验证码有误'),
