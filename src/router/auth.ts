@@ -305,8 +305,8 @@ router.post('/tickets/feedback/unresolved/:id', validate([
             where: {
                 id: v,
                 status:{
-                    [Op.eq]: TicketsStatus.resolved
-                }
+                    [Op.ne]: TicketsStatus.resolved
+                } 
             }
         });
         if (_.isEmpty(g)) {
