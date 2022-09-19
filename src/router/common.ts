@@ -166,7 +166,7 @@ router.post('/login', validate([
 
 router.post('/user',
     validate([
-        body('username').isLength({min: 4, max: 32}).withMessage('用户名不符合要求'),
+        body('username').isLength({min: 4, max: 32}).withMessage('请输入4-32位用户名'),
         body('username').custom(async (value, {req}) => {
             if (!_.isEmpty(await User.model.findOne({
                 attributes: ['id'],
@@ -177,7 +177,7 @@ router.post('/user',
                 throw new Error('用户名已存在');
             }
         }),
-        body('password').isLength({min: 6, max: 16}).withMessage('密码不符合要求'),
+        body('password').isLength({min: 6, max: 16}).withMessage('请输入4-16位密码'),
         body('mobile').isMobilePhone('zh-CN').withMessage('手机号不符合要求'),
         body('mobile').custom(async (value, {req}) => {
             if (!_.isEmpty(await User.model.findOne({
