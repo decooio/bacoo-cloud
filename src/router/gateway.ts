@@ -1,6 +1,6 @@
 import * as express from "express";
 import {NodeType} from "../type/gateway";
-import {CommonResponse, Valid} from "../type/common";
+import {CommonResponse, Deleted, Valid} from "../type/common";
 import {UserApiKey} from "../dao/UserApiKey";
 import * as _ from "lodash";
 import {User} from "../dao/User";
@@ -14,6 +14,11 @@ import {GatewayUser} from "../dao/GatewayUser";
 import {logger} from "../util/logUtil";
 import {DownloadRecord} from "../dao/DownloadRecord";
 import {PinFolderFile} from "../dao/PinFolderFile";
+import {CidBlacklist} from "../dao/CidBlacklist";
+import {BillingOrder} from "../dao/BillingOrder";
+import {api} from "tencentcloud-sdk-nodejs";
+import {BillingOrderType} from "../type/order";
+import {ResponseMessage} from "../constant";
 const dayjs = require("dayjs");
 
 export const router = express.Router();
@@ -27,20 +32,21 @@ router.get('/verify/upload/:address', async (req: any, res) => {
         }
     });
     if (_.isEmpty(apiKey)) {
-        return CommonResponse.badRequest('Invalid api key').send(res);
+        return CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
     }
-    const userPlan = await BillingPlan.queryBillingPlanByApiKeyId(apiKey.id);
+    const userPlan = await BillingPlan.queryBillingPlanByApiKeyId(apiKey.user_id);
     if (_.isEmpty(userPlan)
-        || new BigNumber(userPlan.used_storage_size).comparedTo(userPlan.max_storage_size) >= 0
-        || dayjs(userPlan.storage_expire_time).isBefore(dayjs())) {
-        return CommonResponse.forbidden('Storage plan out of limit').send(res);
+        || new BigNumber(userPlan.used_storage_size).comparedTo(userPlan.max_storage_size) >= 0) {
+        return CommonResponse.forbidden(ResponseMessage.STORAGE_MORE_THEN_MAX).send(res);
+    } else if (dayjs(userPlan.storage_expire_time).isBefore(dayjs())) {
+        return CommonResponse.forbidden(ResponseMessage.STORAGE_EXPIRE).send(res);
     }
     switch (gateway.node_type) {
         case NodeType.free:
             return CommonResponse.success().send(res);
         case NodeType.premium:
             const u = _.find(req.gatewayUser, {'address': req.params.address});
-            return (_.isEmpty(u) ? CommonResponse.unauthorized('Need auth') : CommonResponse.success(req.gatewayUser)).send(res);
+            return (_.isEmpty(u) ? CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS) : CommonResponse.success(req.gatewayUser)).send(res);
     }
 });
 
@@ -55,7 +61,17 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
         }
     });
     if (_.isEmpty(user)) {
-        return CommonResponse.badRequest('Invalid uuid').send(res);
+        return CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
+    }
+    const invalidFile = await CidBlacklist.model.findOne({
+        attributes: ['id'],
+        where: {
+            cid: req.params.cid,
+            deleted: Deleted.undeleted
+        }
+    });
+    if (!_.isEmpty(invalidFile)) {
+        return CommonResponse.badRequest(ResponseMessage.FILE_IN_BLACKLIST).send(res);
     }
     if (gateway.node_type === NodeType.premium) {
         const gu = await GatewayUser.model.findOne({
@@ -66,7 +82,7 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
             }
         });
         if (_.isEmpty(gu)) {
-            return CommonResponse.unauthorized('No auth to access').send(res);
+            return CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
         }
     }
     let pinFile = await PinObject.queryByUserIdAndCid(user.id, req.params.cid);
@@ -86,9 +102,11 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
                 transaction
             });
             const usedDownloadSize = new BigNumber(userPlan.used_download_size);
-            let valid = usedDownloadSize.comparedTo(userPlan.max_download_size) < 0 && dayjs(userPlan.download_expire_time).isAfter(dayjs());
+            const sizeLimit = usedDownloadSize.comparedTo(userPlan.max_download_size) < 0;
+            const dateLimit = dayjs(userPlan.download_expire_time).isAfter(dayjs());
+            let valid = sizeLimit && dateLimit;
             if (file_type === FileType.folder) {
-                (valid ? CommonResponse.success() : CommonResponse.forbidden('Plan overdue')).send(res);
+                (valid ? CommonResponse.success() : CommonResponse.forbidden(dateLimit ? ResponseMessage.DOWNLOAD_MORE_THEN_MAX : ResponseMessage.DOWNLOAD_EXPIRE)).send(res);
             } else {
                 const usedSize = usedDownloadSize.plus(file_size);
                 if (valid && usedSize.comparedTo(userPlan.max_download_size) <= 0) {
@@ -109,12 +127,12 @@ router.post('/verify/download/:uuid/cid/:cid', async (req: any, res) => {
                     });
                     CommonResponse.success().send(res);
                 } else {
-                    CommonResponse.forbidden('Plan overdue').send(res);
+                    CommonResponse.forbidden(dateLimit ? ResponseMessage.DOWNLOAD_MORE_THEN_MAX : ResponseMessage.DOWNLOAD_EXPIRE).send(res);
                 }
             }
         });
     } else {
-        return CommonResponse.notfound('Invalid cid').send(res);
+        return CommonResponse.notfound(ResponseMessage.DOWNLOAD_INVALID_CID).send(res);
     }
 
 })

@@ -1,0 +1,1 @@
+ALTER TABLE `bacoo_cloud`.`tickets` ADD COLUMN `title` varchar(256) NOT NULL COMMENT '标题'  AFTER `type`;

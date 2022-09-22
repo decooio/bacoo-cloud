@@ -2,9 +2,9 @@ import sequelize from '../db/mysql';
 import {DataTypes, QueryTypes, Sequelize} from "sequelize";
 import * as _ from "lodash";
 import { Deleted } from '../type/common';
-export class Tickets {
+export class Intention {
     static model = sequelize.define(
-        'tickets',
+        'intention',
         {
             id: {
                 type: DataTypes.BIGINT,
@@ -13,14 +13,11 @@ export class Tickets {
                 allowNull: false,
             },
             user_id: { type: DataTypes.INTEGER, allowNull: false },
-            ticket_no: { type: DataTypes.STRING, allowNull: false },
-            type: { type: DataTypes.TINYINT, allowNull: true },
-            status: { type: DataTypes.TINYINT, allowNull: false },
-            title: { type: DataTypes.STRING, allowNull: false },
-            description: { type: DataTypes.TEXT, allowNull: false },
-            feedback: { type: DataTypes.TEXT, allowNull: true },
+            status: { type: DataTypes.INTEGER, allowNull: false },
+            storage_type: { type: DataTypes.TINYINT, allowNull: true },
+            gateway_type: { type: DataTypes.TINYINT, allowNull: true },
+            requirement: { type: DataTypes.TEXT, allowNull: false },
             deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
-            feedback_time: { type: DataTypes.DATE, allowNull: true},
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },
@@ -34,6 +31,10 @@ export class Tickets {
     static selectTicketListByUserId(userId: number,pageNum: number, pageSize: number){
        return selectTicketListByUserId(userId,pageNum,pageSize)
     }
+
+    static selectTicketByUserIdAndRequestId(userId: number,requestId:number){
+      return selectTicketsByRequestIdAndUserId(userId,requestId)
+   }
 }
 
 
@@ -48,17 +49,17 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
     ticketResults.count = count;
     if (count > 0) {
        const result = await sequelize.query(
-          'select id,ticket_no as ticketNo,title,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
+          'select id,ticket_no as ticketNo,type,status,feedback,description from tickets where deleted = ? and user_id=? ORDER BY create_time DESC LIMIT ?,?',{
           replacements: [Deleted.undeleted,userId, (pageNum - 1) * pageSize, Number(pageSize)],
           type: QueryTypes.SELECT
         });
-      ticketResults.results = result;
+       ticketResults.results = result;
     } else {
-      ticketResults.results = [];
+       ticketResults.results = [];
     }
     return ticketResults;
   }
-  
+
   async function selectPinObjectCountByQuery(userId: number): Promise<number> {
    return sequelize
    .query('select count(*) from tickets where deleted = ? and user_id= ?', {
@@ -72,4 +73,20 @@ async function selectTicketListByUserId(userId: number,pageNum: number, pageSize
       return res[Object.keys(res)[0]];
     }
   });
+}
+
+async function selectTicketsByRequestIdAndUserId(
+  id: number,
+  userId: number
+): Promise<any> {
+  const result = await sequelize.query(
+      'select ticket_no as ticketNo,type,status,feedback,description,create_time as reportTime from tickets where deleted = ? and user_id = ? and id = ?',{
+      replacements: [Deleted.undeleted,userId, id],
+      type: QueryTypes.SELECT
+    });
+  if (!_.isEmpty(result)) {
+    return result;
+  } else {
+    return null;
+  }
 }

@@ -1,9 +1,9 @@
-import sequelize from '../db/mysql';
+import sequelize from "../db/mysql";
 import {DataTypes, Sequelize} from "sequelize";
-import { Deleted } from '../type/common';
-export class CidBlacklist {
+
+export class PinObjectGateway {
     static model = sequelize.define(
-        'cid_blacklist',
+        'pin_object_gateway',
         {
             id: {
                 type: DataTypes.BIGINT,
@@ -11,8 +11,8 @@ export class CidBlacklist {
                 autoIncrement: true,
                 allowNull: false,
             },
-            cid: { type: DataTypes.STRING, allowNull: false },
-            deleted: { type: DataTypes.TINYINT, allowNull: false, defaultValue: Deleted.undeleted },
+            pin_object_id: { type: DataTypes.BIGINT, allowNull: false },
+            gateway_id: { type: DataTypes.INTEGER, allowNull: false },
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },

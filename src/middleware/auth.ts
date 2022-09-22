@@ -9,6 +9,7 @@ import {User} from "../dao/User";
 import {UserRoles} from "../type/user";
 import {Gateway} from "../dao/Gateway";
 import {NodeType} from "../type/gateway";
+import {ResponseMessage} from "../constant";
 
 const VALID_CHAIN_TYPES = ['substrate', 'sub'];
 const chainTypeDelimiter = '-';
@@ -19,7 +20,7 @@ export async function auth(req: any, res: any, next: any) {
         !_.includes(req.headers.authorization, 'Basic ') &&
         !_.includes(req.headers.authorization, 'Bearer ')
     ) {
-        CommonResponse.unauthorized('Empty Signature').send(res);
+        CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
         return;
     }
 
@@ -64,7 +65,7 @@ export async function auth(req: any, res: any, next: any) {
     } catch(e) {
         logger.error(`Decode signature failed: ${e.stack}`);
     }
-    CommonResponse.unauthorized('Invalid Signature').send(res);
+    CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
     return;
 }
 
@@ -76,7 +77,7 @@ export async function admin(req: any, res: any, next: any) {
         }
     });
     if (_.isEmpty(user)) {
-        CommonResponse.unauthorized("need auth").send(res);
+        CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
         return;
     }
     next();
@@ -94,7 +95,7 @@ export async function gateway(req: any, res: any, next: any) {
             }
         });
         if (_.isEmpty(gateway)) {
-            return CommonResponse.unauthorized("need auth").send(res);
+            return CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
         }
         req.gateway = gateway;
         if (gateway.node_type === NodeType.premium) {
@@ -104,7 +105,7 @@ export async function gateway(req: any, res: any, next: any) {
         next();
         return;
     }
-    CommonResponse.unauthorized("Need auth").send(res);
+    CommonResponse.unauthorized(ResponseMessage.NO_AUTH_TO_ACCESS).send(res);
 }
 
 function substrateAuth(address: string, signature: string): boolean {

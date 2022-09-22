@@ -1,0 +1,1 @@
+ALTER TABLE `bacoo_cloud`.`intention` ADD COLUMN `status` int NOT NULL COMMENT '0 未联系 1 已联系'  AFTER `storage_type`;
