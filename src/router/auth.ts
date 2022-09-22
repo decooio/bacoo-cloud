@@ -282,7 +282,7 @@ router.post('/intention',validate([
          content += '- 用户名：' + queryToObj(user).username + '\n\n';
          content += '- 偏好存储量：' + Storagetype[req.body.storageType] + '\n\n';
          content += '- 网关：' + GatewayTyoe[req.body.gatewayType] + '\n\n';
-         content += '- 需求：' + req.body.requirment;
+         content += '- 需求：' + req.body.requirement;
     await sendMarkdown('# 收到新的意向', content)
     CommonResponse.success().send(res);
   }
