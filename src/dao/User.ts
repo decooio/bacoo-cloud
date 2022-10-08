@@ -1,6 +1,6 @@
 import sequelize from '../db/mysql';
 import {DataTypes, Sequelize} from "sequelize";
-import {UserRoles} from "../type/user";
+import {UserOem, UserRoles} from "../type/user";
 export class User {
     static model = sequelize.define(
         'user',
@@ -17,6 +17,7 @@ export class User {
             password: { type: DataTypes.STRING, allowNull: false },
             role: { type: DataTypes.TINYINT, allowNull: true, defaultValue: UserRoles.user },
             uuid: { type: DataTypes.STRING, allowNull: true },
+            third_party: { type: DataTypes.STRING, allowNull: false, defaultValue: UserOem.common },
             create_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
             update_time: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.fn('NOW') },
         },

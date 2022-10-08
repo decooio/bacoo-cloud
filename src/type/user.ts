@@ -7,3 +7,8 @@ export enum UserApiKeyStatus {
     valid = 0,
     invalid
 }
+
+export enum UserOem {
+    common = 'common',
+    dekun = 'dekun'
+}
