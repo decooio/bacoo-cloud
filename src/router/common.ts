@@ -13,7 +13,7 @@ import {Transaction} from "sequelize";
 const svgCaptcha = require('svg-captcha');
 import crypto from 'crypto';
 import {convertShortHash, cryptoPassword, md5, randomNumber} from "../util/commonUtils";
-import {UserRoles} from "../type/user";
+import {UserOem, UserRoles} from "../type/user";
 import {generateChainAccount} from "../util/chainUtils";
 import {UserApiKey} from "../dao/UserApiKey";
 import {BillingOrder} from "../dao/BillingOrder";
@@ -215,7 +215,8 @@ router.post('/user',
                 throw Error('短信验证码有误');
             }
             return true;
-        })
+        }),
+        body('oem').optional().isLength({max: 16, min: 1}).withMessage('第三方名称长度限制为1~16'),
     ]),
     async (req: any, res) => {
     // Generate amount on Crust
@@ -227,7 +228,8 @@ router.post('/user',
             mobile: req.body.mobile,
             email: req.body.email,
             password: cryptoPassword(req.body.password),
-            role: UserRoles.user
+            role: UserRoles.user,
+            third_party: _.isEmpty(req.body.oem) ? UserOem.common : req.body.oem
         }, {
             transaction
         });
