@@ -18,7 +18,7 @@ export const ResponseMessage = {
 }
 
 export const ValidateMessage = {
-    PASSWORD_LENGTH_MESSAGE: '新旧密码长度最大16,最小6',
+    PASSWORD_LENGTH_MESSAGE: '新旧密码长度为6-16位',
     INVALID_MOBILE: '无效的手机号',
     INVALID_CAPTCHA: '验证码有误',
 }
