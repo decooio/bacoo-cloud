@@ -16,3 +16,9 @@ export const ResponseMessage = {
     OLD_PASSWORD_NOT_MATCH: '旧密码错误',
     MOBILE_EXIST: '手机号已存在',
 }
+
+export const ValidateMessage = {
+    PASSWORD_LENGTH_MESSAGE: '新旧密码长度最大16,最小6',
+    INVALID_MOBILE: '无效的手机号',
+    INVALID_CAPTCHA: '验证码有误',
+}
