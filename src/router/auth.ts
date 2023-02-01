@@ -21,7 +21,7 @@ import { TicketsStatus, TicketsType } from "../type/tickets";
 import {CidBlacklist} from "../dao/CidBlacklist";
 import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
 import { sendMarkdown } from "../util/dingtalk";
-import {ResponseMessage} from "../constant";
+import {ResponseMessage, ValidateMessage} from "../constant";
 
 export const router = express.Router();
 router.get('/key/list', async (req: any, res) => {
@@ -81,8 +81,8 @@ router.get('/user/profile', async (req: any, res: any) => {
 })
 
 router.post('/password/change', validate([
-    body('oldPassword').isLength({max: 16, min: 6}),
-    body('newPassword').isLength({max: 16, min: 6}),
+    body('oldPassword').isLength({max: 16, min: 6}).withMessage(ValidateMessage.PASSWORD_LENGTH_MESSAGE),
+    body('newPassword').isLength({max: 16, min: 6}).withMessage(ValidateMessage.PASSWORD_LENGTH_MESSAGE),
 ]), async (req: any, res) => {
     const user = await User.model.findOne({
         where: {
@@ -109,7 +109,7 @@ function mobileChangeCacheKey(mobile: string): string {
 }
 
 router.post('/mobile/change/sms', validate([
-    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+    body('mobile').isMobilePhone('zh-CN').withMessage(ValidateMessage.INVALID_MOBILE),
     body('mobile').custom(async (mobile, {req}) => {
         const user = await User.model.findOne({
             attributes: ['id'],
@@ -129,7 +129,7 @@ router.post('/mobile/change/sms', validate([
 })
 
 router.post('/mobile/change', validate([
-    body('mobile').isMobilePhone('zh-CN').withMessage('Invalid mobile'),
+    body('mobile').isMobilePhone('zh-CN').withMessage(ValidateMessage.INVALID_MOBILE),
     body('mobile').custom(async (mobile, {req}) => {
         const user = await User.model.findOne({
             attributes: ['id'],
@@ -141,11 +141,11 @@ router.post('/mobile/change', validate([
             throw new Error(ResponseMessage.MOBILE_EXIST);
         }
     }),
-    body('smsCode').isLength({max: 6, min: 6}).withMessage('验证码有误'),
+    body('smsCode').isLength({max: 6, min: 6}).withMessage(ValidateMessage.INVALID_CAPTCHA),
     body('smsCode').custom(async (value, {req}) => {
         const smsCode = await redis.get(mobileChangeCacheKey(req.body.mobile));
         if (value !== smsCode) {
-            throw Error('验证码有误');
+            throw Error(ValidateMessage.INVALID_CAPTCHA);
         }
         return true;
     })
@@ -307,7 +307,7 @@ router.post('/tickets/feedback/unresolved/:id', validate([
                 id: v,
                 status:{
                     [Op.ne]: TicketsStatus.resolved
-                } 
+                }
             }
         });
         if (_.isEmpty(g)) {
