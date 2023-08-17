@@ -22,7 +22,7 @@ import {CidBlacklist} from "../dao/CidBlacklist";
 import { GatewayTyoe, IntentionStatus, Storagetype } from "../type/intentiom";
 import { sendMarkdown } from "../util/dingtalk";
 import {ResponseMessage, ValidateMessage} from "../constant";
-import { PinFile } from "../dao/PinFile";
+import { deleteByPinObjectId } from "../service/pinner";
 
 export const router = express.Router();
 router.get('/key/list', async (req: any, res) => {
@@ -262,8 +262,8 @@ router.get('/file/list/size', validate([
 router.post('/file/delete', validate([
     body('id').isInt().notEmpty().withMessage("id不能为空")
 ]),async (req:any, res) => {
-   await PinObject.model.update({ deleted: Deleted.deleted }, { where: { id: req.body.id, api_key_id: req.apiKeyId }})
-   CommonResponse.success(true).send(res)
+    await deleteByPinObjectId(req.userId, req.apiKeyId, req.body.id)
+    CommonResponse.success(true).send(res)
 })
 
 router.post('/intention',validate([
